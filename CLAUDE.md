@@ -31,6 +31,23 @@ Run all of them after every change. `.github/workflows/ci.yml` runs lint, typech
 10. **The README's component tree matches the code, file for file.** It starts at `App` and shows each component's props and who owns each piece of state. When you add, remove or rename a component, or change its props or state, update the tree and the state table in README.md. `tests/component-tree.test.ts` fails if a component file is missing from the tree or the tree names a component with no file. Check it with the Components tab in React DevTools.
 11. Follow the skills in `.claude/skills/` (`vercel-react-best-practices`, `vercel-composition-patterns`): no components defined inside components, derive values during render instead of syncing them in effects, functional `setState`, `use(Context)` and `ref` as a prop (React 19), composition over boolean props.
 
+## Mistakes I don't want the AI to make
+
+> DRAFT written by Claude from the Debug Lab bugs and from mistakes made while building this repo. Rewrite these in your own words before you submit.
+
+From the Debug Lab (details in `debug-lab-log.md`):
+
+1. **Never put a number before `&&` in JSX.** `{count && <p>…</p>}` draws a "0" when `count` is 0, because React draws numbers. Write `{count > 0 && …}` or a ternary. No tool catches this one: look at the page.
+2. **Never change props or state in place.** No `item.qty = …`, `push`, `splice` or `sort` on something that came from props or state. Make a new object or array and pass it to `setState` (functional update: `setCart((current) => …)`). `setState` with the same object does nothing, so the screen does not update, and the change shows up later at a random render. oxlint flags assignments to props (`react/immutability`).
+3. **Never sort the array you were given.** `list.sort()` changes the original: in the lab it changed the shared product list for good, so "Featured" lost its order. Sort a copy: `[...list].sort(…)` or `list.toSorted(…)`. oxlint enforces it (`unicorn/no-array-sort`; off only for the copied Day 3 files, which already sort copies).
+4. **A key decides which state belongs to which item.** Every list item needs a `key`, and it must come from the data (`product.id`), never the array index. With `key={index}`, sorting moved a saved heart to another product, because the state stayed with key 0. A missing key also shows a warning in the Console.
+5. **tsc and lint passing doesn't mean it works.** For the 5 lab bugs, tsc found none and the lab's lint found 2. After every change, open the page: the Console must have no warnings, and the props, state and keys in the React DevTools Components tab must match what the screen shows.
+
+From mistakes made while building this repo:
+
+6. **Don't copy a template's shortcuts.** The Vite template's `main.tsx` used `document.getElementById("root")!`. Check the element with `instanceof HTMLElement` and throw a clear error instead.
+7. **Protect copied files before formatting.** `prettier --write .` once reformatted the copied Day 3 files. Add them to `.prettierignore` before running a formatter on the whole repo, and check with `git diff` that they did not change.
+
 ## Folder layout
 
 ```
@@ -44,7 +61,8 @@ src/
 ├── main.tsx          reads <body data-page> and renders <App page> inside StrictMode
 ├── App.tsx           the top of the component tree: CartProvider > Layout > the page
 └── styles.css        copied from the first repo, so the look is the same
-tests/                node:test files: the copied Day 3 tests plus messages and page
+tests/                node:test files: the copied Day 3 tests, messages, page and the README component tree
+debug-lab-log.md      the 5 Debug Lab bugs: what I saw, the component, how I found it, the cause, the fix
 public/               api/products.json and products/ (pictures; credits in CREDITS.md)
 ```
 
