@@ -28,7 +28,8 @@ Run all of them after every change. `.github/workflows/ci.yml` runs lint, typech
 7. Only `theme.state.ts` saves the theme choice.
 8. Keep the accessibility the first site had: labelled controls, polite live regions for status lines, cart changes and the toast, a confirm before Clear cart, focus to the cart heading when a row disappears, visually hidden "Quantity" text.
 9. Content stays true: it is a demo for a course. No invented company, address, people or policies.
-10. Follow the skills in `.claude/skills/` (`vercel-react-best-practices`, `vercel-composition-patterns`): no components defined inside components, derive values during render instead of syncing them in effects, functional `setState`, `use(Context)` and `ref` as a prop (React 19), composition over boolean props.
+10. **The README's component tree matches the code, file for file.** It starts at `App` and shows each component's props and who owns each piece of state. When you add, remove or rename a component, or change its props or state, update the tree and the state table in README.md. `tests/component-tree.test.ts` fails if a component file is missing from the tree or the tree names a component with no file. Check it with the Components tab in React DevTools.
+11. Follow the skills in `.claude/skills/` (`vercel-react-best-practices`, `vercel-composition-patterns`): no components defined inside components, derive values during render instead of syncing them in effects, functional `setState`, `use(Context)` and `ref` as a prop (React 19), composition over boolean props.
 
 ## Folder layout
 
@@ -40,7 +41,8 @@ src/
 ├── hooks/            useProducts, useFilters, useCart (+ CartContext), useTheme, useToast, useAnnouncer, useStorageSync
 ├── pages/            ShopPage.tsx, CartPage.tsx: decide what happens; components draw it
 ├── lib/              small helpers: messages.ts (every sentence the pages show, pure and tested), format.ts, page.ts, siteLinks.ts
-├── main.tsx          reads <body data-page>, wraps the page in CartProvider + Layout
+├── main.tsx          reads <body data-page> and renders <App page> inside StrictMode
+├── App.tsx           the top of the component tree: CartProvider > Layout > the page
 └── styles.css        copied from the first repo, so the look is the same
 tests/                node:test files: the copied Day 3 tests plus messages and page
 public/               api/products.json and products/ (pictures; credits in CREDITS.md)
