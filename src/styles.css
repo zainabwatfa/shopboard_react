@@ -1,0 +1,2462 @@
+/* Shared by every page.
+   "Sticker" look: 2px ink outlines, flat offset shadows (no blur),
+   pastel tint + darker shade pairs, paper backgrounds, poster headings. */
+
+/* ---------- Tokens ---------- */
+/* Theme: <html data-theme> is set by the theme switch (theme.ui.ts) and by the
+   small script in each HTML <head>. "light" or "dark" override the device
+   setting; no data-theme (System) follows the device. */
+:root {
+  /* System: native controls and scrollbars follow the device */
+  color-scheme: light dark;
+
+  /* Fonts (loaded from Google Fonts in each HTML head) */
+  --font-poster: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans:
+    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono:
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Sticker pairs: the tint fills, the shade is only used for its shadow.
+     These stay the same in dark mode, always with ink text on top. */
+  --color-st-lav: #c98cf0;
+  --color-st-lav-shade: #9e5ecf;
+  --color-st-pink: #ffb0c2;
+  --color-st-pink-shade: #ff7ea3;
+  --color-st-green: #93f091;
+  --color-st-green-shade: #4fcd4c;
+  --color-st-yellow: #ffb500;
+  --color-st-yellow-shade: #ff9100;
+  --color-on-fill: #1f1a23;
+  /* Light base for product wells, so dark products stay visible in dark mode */
+  --color-st-paper: #fff8f8;
+
+  /* Neutrals */
+  --color-surface: #f5eeee;
+  --color-surface-grid: #faf5f5;
+  --color-paper: #ece3e5;
+  --color-card: #fff8f8;
+  --color-ink: #1f1a23;
+  --color-smoke: #5c5466;
+  --color-ash: #6b6474;
+  --color-hairline: #dccfd3;
+  --color-hairline-2: #c7b8be;
+  --color-line: #1f1a23;
+  --color-shadow: #1f1a23;
+  --color-panel: #1f1a23;
+  --color-on-panel: #fff8f8;
+  --color-on-panel-muted: #cdc4cc;
+  --color-panel-line: #4a4050;
+
+  /* Meaning */
+  --color-accent: #7d42ab;
+  --color-down: #b42f2f;
+
+  /* Geometry */
+  --st-radius: 28px;
+  --st-radius-sm: 18px;
+  --st-radius-xs: 12px;
+  --st-radius-input: 14px;
+  --st-shadow-lg: 8px;
+  --st-shadow-md: 5px;
+  --st-shadow-sm: 3px;
+
+  /* Per-card colour pair; cards in a grid override these (see "Sticker cycle") */
+  --st-tint: var(--color-st-lav);
+  --st-shade: var(--color-st-lav-shade);
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Light chosen in the switch: the light tokens above, even on a dark device */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Dark tokens. They apply when Dark is chosen, or when the device is dark and
+   Light is not chosen. CSS can't put a selector and a media query in one rule,
+   so this block is written twice: keep both copies identical.
+   --color-line is the only edge of fields and round buttons (they have the card
+   colour inside), so it keeps at least 3:1 against card (3.35:1) and surface (3.74:1). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-surface: #15111a;
+  --color-surface-grid: #1a1520;
+  --color-paper: #1d1723;
+  --color-card: #221b29;
+  --color-ink: #f5eeee;
+  --color-smoke: #c3b8cc;
+  --color-ash: #a99cb2;
+  --color-hairline: #3a3042;
+  --color-hairline-2: #4a3f53;
+  --color-line: #7a6890;
+  --color-shadow: #9e5ecf;
+  --color-panel: #2c2433;
+  --color-panel-line: #4f4459;
+  --color-accent: #d6a6f5;
+  --color-down: #ff8a8a;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Same as :root[data-theme="dark"] above */
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --color-surface: #15111a;
+    --color-surface-grid: #1a1520;
+    --color-paper: #1d1723;
+    --color-card: #221b29;
+    --color-ink: #f5eeee;
+    --color-smoke: #c3b8cc;
+    --color-ash: #a99cb2;
+    --color-hairline: #3a3042;
+    --color-hairline-2: #4a3f53;
+    --color-line: #7a6890;
+    --color-shadow: #9e5ecf;
+    --color-panel: #2c2433;
+    --color-panel-line: #4f4459;
+    --color-accent: #d6a6f5;
+    --color-down: #ff8a8a;
+  }
+}
+
+/* ---------- Sticker cycle: lav → pink → green → yellow ---------- */
+.hero-tile--1,
+.perks li:nth-child(4n + 1),
+.product-card:nth-child(4n + 1),
+.cart-item:nth-child(4n + 1) {
+  --st-tint: var(--color-st-lav);
+  --st-shade: var(--color-st-lav-shade);
+}
+
+.hero-tile--2,
+.perks li:nth-child(4n + 2),
+.product-card:nth-child(4n + 2),
+.cart-item:nth-child(4n + 2) {
+  --st-tint: var(--color-st-pink);
+  --st-shade: var(--color-st-pink-shade);
+}
+
+.hero-tile--3,
+.perks li:nth-child(4n + 3),
+.product-card:nth-child(4n + 3),
+.cart-item:nth-child(4n + 3) {
+  --st-tint: var(--color-st-green);
+  --st-shade: var(--color-st-green-shade);
+}
+
+.perks li:nth-child(4n + 4),
+.product-card:nth-child(4n + 4),
+.cart-item:nth-child(4n + 4) {
+  --st-tint: var(--color-st-yellow);
+  --st-shade: var(--color-st-yellow-shade);
+}
+
+/* ---------- Base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* The header only sticks where it fits on one row (see "Header sticks" below).
+   Where it scrolls away, a small gap is enough above a focused or linked element. */
+html {
+  scroll-padding-top: 1rem;
+}
+
+body {
+  margin: 0;
+  font: 400 1rem/1.55 var(--font-sans);
+  color: var(--color-ink);
+  background: var(--color-surface);
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+h1,
+h2 {
+  margin: 0 0 1rem;
+  font-family: var(--font-poster);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
+  text-wrap: balance;
+  /* A word too long for a phone screen breaks instead of making the page scroll
+     sideways: with a hyphen (long words only), or anywhere as a last resort.
+     From 30rem every heading word fits, so hyphens are off there. */
+  overflow-wrap: break-word;
+  hyphens: auto;
+  hyphenate-limit-chars: 12 5 5;
+}
+
+h3 {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* Accent words: colour only. Fraunces is loaded upright, so no fake italic. */
+h1 em,
+h2 em {
+  font-style: normal;
+  color: var(--color-accent);
+}
+
+p {
+  margin: 0 0 1rem;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--color-st-pink);
+  color: var(--color-on-fill);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 101;
+  padding: 0.625rem 1rem;
+  border: 2px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-st-pink);
+  color: var(--color-on-fill);
+  font-weight: 700;
+  box-shadow: var(--st-shadow-sm) var(--st-shadow-sm) 0
+    var(--color-st-pink-shade);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Hidden on screen, still read by screen readers and voice control.
+   The theme switch radios use it too, so they stay focusable. */
+.visually-hidden,
+.theme-switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.container {
+  width: min(100% - 2.5rem, 80rem);
+  margin-inline: auto;
+}
+
+/* Dark mono pill above headings */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0 0 1.25rem;
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-panel);
+  color: var(--color-on-panel);
+  font: 400 0.8125rem/1.2 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  content: "";
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--color-st-pink);
+}
+
+/* ---------- Buttons ---------- */
+/* .button = pink primary, .button-secondary = ghost, .button-small = small size.
+   Each variant only changes the custom properties below. */
+.button {
+  --btn-bg: var(--color-st-pink);
+  --btn-fg: var(--color-on-fill);
+  --btn-shade: var(--color-st-pink-shade);
+  --btn-depth: var(--st-shadow-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  min-height: 3rem;
+  padding: 0.875rem 1.5rem;
+  border: 2px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font: 700 1rem/1 var(--font-sans);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: var(--btn-depth) var(--btn-depth) 0 var(--btn-shade);
+}
+
+.button:hover {
+  box-shadow: calc(var(--btn-depth) + 2px) calc(var(--btn-depth) + 2px) 0
+    var(--btn-shade);
+}
+
+.button:active {
+  box-shadow: 2px 2px 0 var(--btn-shade);
+}
+
+/* Links that take you somewhere get an arrow (hidden from screen readers):
+   → inside the site, ↗ to another site */
+a.button::after {
+  content: "→" / "";
+}
+
+a.button[href^="https://"]::after {
+  content: "↗" / "";
+}
+
+.button-secondary {
+  --btn-bg: var(--color-card);
+  --btn-fg: var(--color-ink);
+  --btn-shade: var(--color-st-lav-shade);
+}
+
+.button-small {
+  --btn-depth: var(--st-shadow-sm);
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0.5625rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* ---------- Announcement + header ---------- */
+.announce {
+  margin: 0;
+  padding: 0.5rem 1.25rem;
+  background: var(--color-panel);
+  color: var(--color-on-panel);
+  font: 400 0.75rem/1.4 var(--font-mono);
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+/* On phones and short screens the header wraps to 2 or 3 rows, so it scrolls
+   away with the page instead of covering what has the keyboard focus. It becomes
+   sticky from 40rem wide and 30rem tall, where it is one row (see the end of
+   "Larger screens"). */
+.site-header {
+  border-bottom: 2px solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.header-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 3.75rem;
+  padding-block: 0.5rem;
+}
+
+/* Phone sizes are tight: logo + nav share a row from about 370px, and the nav
+   wraps below that. On phones the theme switch goes on the next row, on the right
+   (at 360px it shares that row with the nav). All in one row from 40rem. */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 0.5rem;
+  font: 900 1.0625rem/1 var(--font-poster);
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+/* The tag icon as a small pink sticker with an ink outline */
+.logo svg {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  overflow: visible;
+  color: var(--color-st-pink);
+  filter: drop-shadow(2px 2px 0 var(--color-line));
+}
+
+.logo svg > path:first-child {
+  stroke: var(--color-on-fill);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+}
+
+.logo-cut {
+  fill: var(--color-surface);
+  stroke: var(--color-on-fill);
+}
+
+.nav-list {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: 700 0.875rem/1 var(--font-sans);
+}
+
+.nav-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.5rem;
+  padding: 0 0.4375rem;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.nav-list a:hover {
+  background: color-mix(in srgb, var(--color-st-lav) 30%, transparent);
+}
+
+.nav-list a:focus-visible {
+  outline-width: 2px;
+  outline-offset: 2px;
+}
+
+/* The page you are on: lavender pill (plus a dot on wider screens) */
+.nav-list a[aria-current="page"] {
+  border-color: var(--color-line);
+  background: var(--color-st-lav);
+  color: var(--color-on-fill);
+}
+
+/* Cart count as a small yellow sticker */
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.375rem;
+  border: 2px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-st-yellow);
+  color: var(--color-on-fill);
+  font: 700 0.75rem/1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  box-shadow: 2px 2px 0 var(--color-line);
+}
+
+/* ---------- Theme switch (System / Light / Dark) ---------- */
+/* A pill with three round options. The radios are hidden (see .visually-hidden)
+   but still get the keyboard focus; each label is a round target, 40px on the
+   smallest phones and 44px from 24rem. */
+.theme-switch {
+  position: relative;
+  display: flex;
+  gap: 0;
+  min-width: 0;
+  margin: 0;
+  margin-inline-start: auto;
+  padding: 0;
+  border: 2px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-card);
+}
+
+/* The negative margins let each circle cover the pill's border, so the chosen
+   circle's outline lines up with the pill's outline */
+.theme-switch label {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-block: -2px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background-clip: padding-box;
+  color: var(--color-smoke);
+  cursor: pointer;
+}
+
+.theme-switch label:first-of-type {
+  margin-inline-start: -2px;
+}
+
+.theme-switch label:last-of-type {
+  margin-inline-end: -2px;
+}
+
+.theme-switch svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.theme-switch label:hover {
+  background-color: color-mix(in srgb, var(--color-st-lav) 30%, transparent);
+  color: var(--color-ink);
+}
+
+/* The chosen option: a lavender sticker circle, with an ink icon in both themes */
+.theme-switch input:checked + label {
+  border-color: var(--color-line);
+  background-color: var(--color-st-lav);
+  color: var(--color-on-fill);
+}
+
+/* The hidden radio has the focus, so its label shows the ring */
+.theme-switch input:focus-visible + label {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* High contrast mode removes the lavender fill, so mark the choice with system colours */
+@media (forced-colors: active) {
+  .theme-switch input:checked + label {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+}
+
+/* ---------- Page heading ---------- */
+/* .page-head: shop + cart. .page-hero: the content pages (about, FAQ, privacy…),
+   a <section> with a .container inside, followed by a .prose block. */
+.page-head {
+  padding-block: 2.5rem 0.5rem;
+}
+
+.page-hero {
+  padding-block: 2.5rem 1.5rem;
+}
+
+/* The page you landed on by mistake (404) has no .prose after the hero */
+.page-hero:last-child {
+  padding-bottom: 4rem;
+}
+
+.page-head h1,
+.page-hero h1 {
+  font-size: clamp(2.875rem, 6vw, 5.5rem);
+  line-height: 0.94;
+}
+
+.page-head p:not(.eyebrow) {
+  max-width: 35rem;
+  font-size: 1.125rem;
+  line-height: 1.45;
+  color: var(--color-smoke);
+}
+
+/* Intro paragraph under a page title */
+.lede {
+  max-width: 35rem;
+  font-size: clamp(1.125rem, 1.7vw, 1.375rem);
+  line-height: 1.45;
+  color: var(--color-smoke);
+}
+
+/* "Last updated" line under a lede */
+.page-meta {
+  margin: 0;
+  font: 400 0.8125rem/1.5 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-smoke);
+}
+
+/* Links inside running text: ink text with a visible accent underline */
+.lede a,
+.hero-note a,
+.join-copy a,
+.prose a:not(.button) {
+  color: var(--color-ink);
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+}
+
+.lede a:hover,
+.hero-note a:hover,
+.join-copy a:hover,
+.prose a:not(.button):hover {
+  color: var(--color-accent);
+}
+
+/* A row of buttons (content pages, call-to-action cards) */
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.75rem;
+}
+
+/* ---------- Home: hero ---------- */
+.hero {
+  padding-block: 2.5rem 4rem;
+  overflow: hidden;
+}
+
+.hero-inner {
+  display: grid;
+  gap: 3rem;
+  align-items: center;
+}
+
+.hero h1 {
+  font-size: clamp(3.125rem, 7vw, 7rem);
+  line-height: 0.92;
+}
+
+.hero-lead {
+  max-width: 35rem;
+  font-size: clamp(1.125rem, 1.7vw, 1.375rem);
+  line-height: 1.45;
+  color: var(--color-smoke);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+/* Small line under the hero buttons that links to the About page */
+.hero-note {
+  margin: 1.75rem 0 0;
+  font: 400 0.8125rem/1.5 var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--color-smoke);
+}
+
+.hero-art {
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  aspect-ratio: 1;
+  margin-inline: auto;
+}
+
+/* Filled sticker cards: tint background, shade shadow */
+.hero-tile {
+  position: absolute;
+  padding: 9%;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius);
+  background: var(--st-tint);
+  box-shadow: var(--st-shadow-lg) var(--st-shadow-lg) 0 var(--st-shade);
+}
+
+/* Each tile links to its product page. Like a button, it lifts on hover (see
+   "Motion") and its shadow grows; the tile in use comes to the front. */
+a.hero-tile:hover,
+a.hero-tile:focus-visible {
+  z-index: 1;
+  box-shadow: calc(var(--st-shadow-lg) + 3px) calc(var(--st-shadow-lg) + 3px) 0
+    var(--st-shade);
+}
+
+a.hero-tile:active {
+  box-shadow: var(--st-shadow-sm) var(--st-shadow-sm) 0 var(--st-shade);
+}
+
+/* The radius only shows on photos (the SVG pictures have see-through corners) */
+.hero-tile img {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--st-radius-xs);
+  object-fit: contain;
+}
+
+.hero-tile--1 {
+  inset: 2% 32% 30% 0;
+  rotate: -4deg;
+}
+
+.hero-tile--2 {
+  inset: 34% 1% 2% 42%;
+  rotate: 5deg;
+}
+
+.hero-tile--3 {
+  inset: 58% 50% -1% 4%;
+  rotate: -8deg;
+}
+
+/* Round yellow sticker */
+.hero-stamp {
+  position: absolute;
+  top: 0;
+  right: 3%;
+  display: grid;
+  place-items: center;
+  width: clamp(5.5rem, 24vw, 7rem);
+  aspect-ratio: 1;
+  margin: 0;
+  border: 2px solid var(--color-line);
+  border-radius: 50%;
+  background: var(--color-st-yellow);
+  color: var(--color-on-fill);
+  font: 400 0.75rem/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  box-shadow: 4px 4px 0 var(--color-line);
+  rotate: 12deg;
+}
+
+.hero-stamp strong {
+  display: block;
+  margin-bottom: 0.125rem;
+  font: 900 2.375rem/0.9 var(--font-poster);
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Home: perks (sticker cards) ---------- */
+.perks {
+  padding-block: 0 4rem;
+}
+
+.perks ul {
+  display: grid;
+  gap: 1.5rem;
+  margin-block: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.perks li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius);
+  background: var(--color-card);
+  box-shadow: var(--st-shadow-lg) var(--st-shadow-lg) 0 var(--st-shade);
+}
+
+/* The icon sits in a round sticker filled with the card's tint */
+.perks svg {
+  width: 3rem;
+  height: 3rem;
+  padding: 0.625rem;
+  border: 2px solid var(--color-line);
+  border-radius: 50%;
+  background: var(--st-tint);
+  color: var(--color-on-fill);
+}
+
+.perks p {
+  margin: 0;
+}
+
+.perks strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 1.125rem;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.perks span {
+  display: block;
+  font-size: 0.9375rem;
+  color: var(--color-smoke);
+}
+
+/* ---------- Forms ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius-input);
+  background-color: var(--color-card);
+  color: var(--color-ink);
+  font: 400 1rem/1.4 var(--font-sans);
+  appearance: none;
+}
+
+textarea {
+  min-height: 9rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* Chevron drawn with two gradients, so it follows the text colour in both themes */
+select {
+  padding-right: 2.75rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.375rem) 52%,
+    calc(100% - 1rem) 52%;
+  background-size: 0.375rem 0.375rem;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-ash);
+  opacity: 1;
+}
+
+/* Focus: lavender shadow. The transparent outline shows up in forced-colours mode. */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid transparent;
+  box-shadow: 4px 4px 0 var(--color-st-lav-shade);
+}
+
+/* Only flag fields after the user has typed something invalid */
+input:user-invalid,
+select:user-invalid,
+textarea:user-invalid {
+  border-color: var(--color-down);
+  box-shadow: var(--st-shadow-sm) var(--st-shadow-sm) 0 var(--color-down);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-smoke);
+}
+
+/* ---------- Shop page ---------- */
+.shop-page {
+  padding-bottom: 4rem;
+}
+
+.filters {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0 1.25rem;
+  padding: 1.25rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius-sm);
+  background: var(--color-card);
+  box-shadow: var(--st-shadow-md) var(--st-shadow-md) 0 var(--color-shadow);
+}
+
+/* The status line of the shop, product, cart and checkout pages. "Loading…" and
+   the result count stay this quiet mono line. */
+.status {
+  margin: 0 0 1.25rem;
+  font: 400 0.8125rem/1.5 var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--color-smoke);
+}
+
+/* Empty and error states: the line becomes a card. shared/ui/status.ts puts a
+   button box (.status-action, hidden until needed) right after the line:
+   "Clear filters" (id ending in -clear) makes it the empty state (dashed, quiet),
+   "Try again" (id ending in -retry) the error state (solid red edge, pink wash).
+   data-state="empty" or "error" on the line does the same without a button. */
+.status[data-state="empty"],
+.status[data-state="error"],
+.status:has(~ .status-action:not([hidden])) {
+  padding: 2rem 1.5rem;
+  border: 2px dashed var(--color-hairline-2);
+  border-radius: var(--st-radius-sm);
+  background: var(--color-surface);
+  font: 700 1.0625rem/1.45 var(--font-sans);
+  letter-spacing: normal;
+  text-align: center;
+  color: var(--color-ink);
+}
+
+.status[data-state="error"],
+.status:has(~ .status-action[id$="-retry"]:not([hidden])) {
+  border-style: solid;
+  border-color: var(--color-down);
+  background: color-mix(in srgb, var(--color-st-pink) 22%, var(--color-card));
+}
+
+/* With a button, the line and the box under it are drawn as one card */
+.status:has(~ .status-action:not([hidden])) {
+  margin-bottom: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 0;
+  border-radius: var(--st-radius-sm) var(--st-radius-sm) 0 0;
+}
+
+.status-action:not([hidden]) {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 1.25rem;
+  padding: 0.5rem 1.5rem 2rem;
+  border: 2px dashed var(--color-hairline-2);
+  border-top: 0;
+  border-radius: 0 0 var(--st-radius-sm) var(--st-radius-sm);
+  background: var(--color-surface);
+}
+
+.status-action[id$="-retry"]:not([hidden]) {
+  border-style: solid;
+  border-color: var(--color-down);
+  background: color-mix(in srgb, var(--color-st-pink) 22%, var(--color-card));
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr));
+  gap: 1.25rem 1rem;
+}
+
+.product-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius-sm);
+  background: var(--color-card);
+  box-shadow: var(--st-shadow-md) var(--st-shadow-md) 0 var(--st-shade);
+}
+
+/* Image well: a square with a light wash of the card's tint (light in both
+   themes), seen while a photo loads or behind see-through pictures. The picture
+   fills the square and is cropped to it; overflow keeps the corners round. */
+.product-media {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border: 1.5px solid var(--color-hairline-2);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--st-tint) 45%, var(--color-st-paper));
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.product-body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 0.25rem;
+  padding: 0.75rem 0.25rem 0.25rem;
+}
+
+.category {
+  margin: 0;
+  font: 400 0.6875rem/1.3 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-smoke);
+}
+
+.product-body h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.price {
+  flex-grow: 1;
+  margin: 0.25rem 0 0.875rem;
+  font: 900 1.5rem/1 var(--font-poster);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.product-body .button {
+  --btn-depth: var(--st-shadow-sm);
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+}
+
+/* Toast (shared/ui/toast.ts). Not hidden with `hidden`, so it stays a live region
+   that screen readers watch; when closed it is invisible and can't be focused. */
+.toast {
+  position: fixed;
+  z-index: 20;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 0.75rem 1.125rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius-sm);
+  background: var(--color-card);
+  color: var(--color-ink);
+  box-shadow: var(--st-shadow-md) var(--st-shadow-md) 0 var(--color-shadow);
+}
+
+.toast:not(.is-open) {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.toast-text {
+  flex: 1;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+
+.toast .button {
+  --btn-depth: var(--st-shadow-sm);
+  flex: none;
+  min-height: 2.25rem;
+  padding: 0.5625rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* .button sets display, so `hidden` needs a more specific rule to win */
+.toast .toast-action[hidden] {
+  display: none;
+}
+
+/* Round icon button */
+.toast-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 2px solid var(--color-line);
+  border-radius: 50%;
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: 400 1.375rem/1 var(--font-sans);
+  cursor: pointer;
+}
+
+.toast-close:hover {
+  box-shadow: 2px 2px 0 var(--color-st-lav-shade);
+}
+
+.toast-close:focus-visible {
+  outline-width: 2px;
+  outline-offset: 2px;
+}
+
+/* ---------- Cart page ---------- */
+.cart-page {
+  padding-bottom: 4rem;
+}
+
+/* minmax(0, 1fr): a long name or price wraps inside the column instead of
+   making the column (and the page) wider than the screen */
+.cart-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+  margin-top: 1.5rem;
+}
+
+/* Empty state: dashed, quiet */
+.cart-empty-state {
+  margin-top: 1.5rem;
+  padding: 2.5rem 1.5rem;
+  border: 2px dashed var(--color-hairline-2);
+  border-radius: var(--st-radius-sm);
+  background: var(--color-surface);
+  text-align: center;
+  color: var(--color-smoke);
+}
+
+/* `hidden` must win, so only set display when it is shown */
+.cart-empty-state:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cart-empty-state p {
+  margin: 0 0 0.25rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.cart-list {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each row is a small sticker card. On phones the line total goes under the
+   name and the − / + / Remove controls get their own full-width row, so the row
+   fits in 320px even with a long name or a total like $12,345.00. From 30rem the
+   total moves up next to the name (see "Larger screens"). */
+.cart-item {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  grid-template-areas:
+    "thumb name name"
+    "thumb unit unit"
+    "thumb line line"
+    "qty qty remove";
+  gap: 0.25rem 0.875rem;
+  align-items: center;
+  padding: 0.875rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius-sm);
+  background: var(--color-card);
+  box-shadow: var(--st-shadow-md) var(--st-shadow-md) 0 var(--st-shade);
+}
+
+/* Same idea as the shop's image well: the picture fills the rounded square */
+.cart-thumb {
+  grid-area: thumb;
+  align-self: start;
+  width: 4.5rem;
+  height: 4.5rem;
+  aspect-ratio: 1 / 1;
+  border: 1.5px solid var(--color-hairline-2);
+  border-radius: var(--st-radius-xs);
+  background: color-mix(in srgb, var(--st-tint) 45%, var(--color-st-paper));
+  object-fit: cover;
+}
+
+.cart-name {
+  grid-area: name;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.cart-unit {
+  grid-area: unit;
+  font: 400 0.8125rem/1.4 var(--font-mono);
+  color: var(--color-smoke);
+}
+
+.cart-line {
+  grid-area: line;
+  margin-top: 0.25rem;
+  font: 900 1.25rem/1 var(--font-poster);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.cart-qty {
+  grid-area: qty;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* The number only: the visually hidden "Quantity" inside it keeps its 1px size */
+.cart-qty > span {
+  min-width: 1.75rem;
+  font: 700 1rem/1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* − and + as round icon buttons */
+.cart-qty .button {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--color-card);
+  color: var(--color-ink);
+  font-size: 1.125rem;
+  box-shadow: none;
+}
+
+.cart-qty .button:hover {
+  box-shadow: 2px 2px 0 var(--color-st-lav-shade);
+}
+
+.cart-qty .button:active {
+  box-shadow: none;
+}
+
+.cart-qty .button:focus-visible {
+  outline-width: 2px;
+  outline-offset: 2px;
+}
+
+/* Remove and Clear cart as quiet link-style buttons with a pink underline, so
+   the things that delete don't look like the main actions */
+.cart-item .cart-remove {
+  grid-area: remove;
+  justify-self: end;
+  margin-top: 0.5rem;
+}
+
+.cart-item .cart-remove,
+.cart-summary .cart-clear {
+  padding: 0.5rem 0.25rem;
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-ink);
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-st-pink-shade);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+  box-shadow: none;
+}
+
+.cart-item .cart-remove:hover,
+.cart-item .cart-remove:active,
+.cart-summary .cart-clear:hover,
+.cart-summary .cart-clear:active {
+  color: var(--color-down);
+  box-shadow: none;
+}
+
+/* Centred under the summary's buttons, with its 3rem tap height kept */
+.cart-summary .cart-clear {
+  align-self: center;
+}
+
+/* `hidden` must win, so only set display when the summary is shown */
+.cart-summary:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius);
+  background: var(--color-card);
+  box-shadow: var(--st-shadow-lg) var(--st-shadow-lg) 0 var(--color-shadow);
+}
+
+.cart-summary h2 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+/* A total too wide to share the row wraps under its label */
+.cart-summary p {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+
+.cart-summary p > span {
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+}
+
+.cart-total-row {
+  padding-top: 1rem;
+  border-top: 2px dashed var(--color-hairline-2);
+  font-weight: 700;
+}
+
+.cart-total-row strong {
+  font: 900 2rem/1 var(--font-poster);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* The demo note sits in a recessed well so it reads as a notice */
+.cart-summary .hint {
+  display: block;
+  padding: 0.625rem 0.875rem;
+  border: 1.5px solid var(--color-hairline-2);
+  border-radius: var(--st-radius-xs);
+  background: var(--color-paper);
+  line-height: 1.45;
+}
+
+/* ---------- Home: join (register) ---------- */
+.join {
+  padding-block: 4rem;
+  background-color: var(--color-surface-grid);
+  background-image:
+    linear-gradient(var(--color-hairline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-hairline) 1px, transparent 1px);
+  background-size: 2rem 2rem;
+  border-block: 2px solid var(--color-line);
+}
+
+.join-inner {
+  display: grid;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.join h2 {
+  font-size: clamp(2.25rem, 4.6vw, 4.25rem);
+  line-height: 0.96;
+}
+
+.join-copy p:not(.eyebrow) {
+  max-width: 30rem;
+  font-size: 1.125rem;
+  line-height: 1.45;
+  color: var(--color-smoke);
+}
+
+/* The demo forms: register (home) and contact */
+.register-form,
+.contact-form {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius);
+  background: var(--color-card);
+  box-shadow: var(--st-shadow-lg) var(--st-shadow-lg) 0
+    var(--color-st-pink-shade);
+}
+
+.register-form .button,
+.contact-form .button {
+  margin-top: 0.25rem;
+}
+
+/* ---------- Footer: dark panel card ---------- */
+/* Brand name, then three link groups (stacked on phones, side by side from
+   48rem, next to the name from 62.5rem), then the bottom bar. */
+.site-footer {
+  padding-block: 3rem 2.5rem;
+}
+
+.footer-card {
+  display: grid;
+  gap: 2rem;
+  padding: 1.75rem;
+  border: 2px solid var(--color-line);
+  border-radius: 32px;
+  background: var(--color-panel);
+  color: var(--color-on-panel);
+  box-shadow: var(--st-shadow-lg) var(--st-shadow-lg) 0
+    var(--color-st-lav-shade);
+}
+
+/* Accent purple is too dark on the panel, so focus rings use lavender here */
+.footer-card :focus-visible {
+  outline-color: var(--color-st-lav);
+}
+
+.footer-name {
+  margin: 0;
+  font: 900 2.25rem/1 var(--font-poster);
+  letter-spacing: -0.015em;
+}
+
+.footer-nav {
+  display: grid;
+  gap: 1.75rem;
+}
+
+/* Group titles: mono, uppercase, lavender (h2 for the outline, small on screen) */
+.footer-heading {
+  margin: 0 0 0.5rem;
+  font: 400 0.75rem/1.3 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-st-lav);
+}
+
+.footer-links {
+  display: grid;
+  gap: 0.125rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 2.25rem tall, so each link is an easy tap target */
+.footer-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  color: var(--color-on-panel);
+  font: 400 0.9375rem/1.3 var(--font-sans);
+  text-decoration: none;
+  text-underline-offset: 0.25em;
+}
+
+.footer-links a:hover {
+  color: var(--color-st-lav);
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+}
+
+.footer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-panel-line);
+  font: 400 0.75rem/1.5 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-on-panel-muted);
+}
+
+/* ---------- Content pages: long-form text (.prose) ---------- */
+/* About, contact, FAQ, shipping, privacy, terms, credits. The hero text and the
+   prose share one reading width (about 68 characters a line), centred on wide
+   screens. max-width works with .container's width, so the gutters stay. */
+.page-hero > .container,
+.prose {
+  max-width: 42rem;
+}
+
+.prose {
+  padding-bottom: 4rem;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  overflow-wrap: break-word;
+}
+
+.prose h2 {
+  margin: 3rem 0 1rem;
+  font-size: clamp(1.875rem, 3.4vw, 2.625rem);
+  line-height: 1;
+}
+
+.prose h3 {
+  margin: 2rem 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose p,
+.prose ul,
+.prose ol {
+  margin: 0 0 1.25rem;
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.5rem;
+}
+
+.prose li + li {
+  margin-top: 0.5rem;
+}
+
+.prose li::marker {
+  color: var(--color-accent);
+}
+
+/* Links that leave the site get an arrow (hidden from screen readers) */
+.prose a[href^="https://"]:not(.button)::after {
+  content: "↗" / "";
+  margin-left: 0.125em;
+}
+
+.prose code {
+  padding: 0.0625em 0.375em;
+  border: 1.5px solid var(--color-hairline-2);
+  border-radius: 6px;
+  background: var(--color-paper);
+  font: 400 0.875em/1.4 var(--font-mono);
+}
+
+/* The prose spacing above is for text, not for the form hints */
+.prose .hint {
+  margin: 0;
+}
+
+/* "This is a demo" note: a small yellow sticker card with a round "!" badge */
+.callout {
+  position: relative;
+  margin: 0 0 2rem;
+  padding: 1rem 1.25rem 1rem 3.5rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius-sm);
+  background: color-mix(in srgb, var(--color-st-yellow) 22%, var(--color-card));
+  box-shadow: var(--st-shadow-sm) var(--st-shadow-sm) 0
+    var(--color-st-yellow-shade);
+}
+
+.callout::before {
+  content: "!" / "";
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid var(--color-line);
+  border-radius: 50%;
+  background: var(--color-st-yellow);
+  color: var(--color-on-fill);
+  font: 700 0.875rem/1 var(--font-mono);
+}
+
+.callout > :last-child,
+.example > :last-child,
+.cta-card > :last-child {
+  margin-bottom: 0;
+}
+
+/* Example content (what a real shop would say): dashed and flat, so it reads
+   as "not the real thing", with a small mono tag on top */
+.example {
+  margin: 0 0 2rem;
+  padding: 1.25rem;
+  border: 2px dashed var(--color-hairline-2);
+  border-radius: var(--st-radius-sm);
+  background: var(--color-paper);
+}
+
+.example .example-label {
+  display: inline-block;
+  margin: 0 0 1rem;
+  padding: 0.25rem 0.75rem;
+  border: 1.5px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-card);
+  font: 400 0.75rem/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Tables scroll sideways inside their card if they don't fit */
+.table-wrap {
+  margin: 0 0 1.5rem;
+  overflow-x: auto;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius-sm);
+  background: var(--color-card);
+  box-shadow: var(--st-shadow-md) var(--st-shadow-md) 0
+    var(--color-st-lav-shade);
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* Tighter cells on phones, so a 3-column table fits in 320px (roomier from 40rem) */
+.prose th,
+.prose td {
+  padding: 0.625rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose thead th {
+  background: var(--color-paper);
+  font: 400 0.75rem/1.3 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-smoke);
+}
+
+.prose tbody tr {
+  border-top: 1px solid var(--color-hairline-2);
+}
+
+.prose tbody th {
+  font-weight: 400;
+}
+
+/* Credits: the photo thumbnails, smaller on phones */
+.credits-table img {
+  width: 3rem;
+  height: 3rem;
+  border: 1.5px solid var(--color-hairline-2);
+  border-radius: var(--st-radius-xs);
+  object-fit: cover;
+}
+
+/* FAQ accordion: small sticker cards, the question in mono with a ▸ that
+   turns when the answer is open */
+.prose details {
+  margin: 0 0 1rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius-xs);
+  background: var(--color-card);
+  box-shadow: var(--st-shadow-sm) var(--st-shadow-sm) 0 var(--color-shadow);
+}
+
+.prose summary {
+  position: relative;
+  display: block;
+  padding: 0.875rem 1rem 0.875rem 2.25rem;
+  border-radius: calc(var(--st-radius-xs) - 2px);
+  font: 700 0.875rem/1.45 var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+}
+
+.prose summary::-webkit-details-marker {
+  display: none;
+}
+
+.prose summary::before {
+  content: "▸" / "";
+  position: absolute;
+  top: 0.875rem;
+  left: 1rem;
+  color: var(--color-accent);
+}
+
+.prose summary:hover {
+  background: color-mix(in srgb, var(--color-st-lav) 22%, transparent);
+}
+
+.prose details[open] > summary {
+  border-bottom: 1.5px dashed var(--color-hairline-2);
+  border-radius: calc(var(--st-radius-xs) - 2px) calc(var(--st-radius-xs) - 2px)
+    0 0;
+}
+
+.prose details[open] > summary::before {
+  rotate: 90deg;
+}
+
+/* The answer: one <div> after the <summary> */
+.prose details > div {
+  padding: 1rem 1rem 0.25rem;
+}
+
+.prose details > div p {
+  margin-bottom: 0.875rem;
+}
+
+/* Call to action at the end of a page: a filled lavender sticker card.
+   Text on sticker fills is always ink, in both themes. */
+.cta-card {
+  margin-top: 3rem;
+  padding: 1.75rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius);
+  background: var(--color-st-lav);
+  color: var(--color-on-fill);
+  box-shadow: var(--st-shadow-lg) var(--st-shadow-lg) 0
+    var(--color-st-lav-shade);
+}
+
+.prose .cta-card h2 {
+  margin-top: 0;
+  color: var(--color-on-fill);
+}
+
+.cta-card .button-row {
+  margin-top: 1.5rem;
+}
+
+.cta-card .button-secondary {
+  --btn-shade: var(--color-on-fill);
+}
+
+/* The accent purple is too close to lavender, so focus rings are ink here */
+.cta-card :focus-visible {
+  outline-color: var(--color-on-fill);
+}
+
+/* ---------- Motion (only for people who haven't asked for less) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Press model: hover lifts up-left, active presses down-right */
+  .button,
+  input,
+  select,
+  textarea {
+    transition:
+      transform 0.15s var(--ease),
+      box-shadow 0.15s var(--ease);
+  }
+
+  .button:hover {
+    transform: translate(-2px, -2px);
+  }
+
+  .button:active {
+    transform: translate(3px, 3px);
+  }
+
+  .cart-qty .button,
+  .toast-close {
+    transition:
+      transform 0.12s var(--ease),
+      box-shadow 0.12s var(--ease);
+  }
+
+  /* Only while the switch is in use, so the saved choice (checked by main.ts
+     after the page is drawn) appears without animating on every page load */
+  .theme-switch:hover label,
+  .theme-switch:focus-within label {
+    transition:
+      background-color 0.15s var(--ease),
+      color 0.15s var(--ease);
+  }
+
+  .cart-qty .button:hover,
+  .toast-close:hover {
+    transform: translate(-1px, -1px);
+  }
+
+  .cart-qty .button:active,
+  .toast-close:active,
+  .cart-item .cart-remove:hover,
+  .cart-item .cart-remove:active,
+  .cart-summary .cart-clear:hover,
+  .cart-summary .cart-clear:active {
+    transform: none;
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    transform: translate(-1px, -1px);
+  }
+
+  .prose summary::before {
+    transition: rotate 0.15s var(--ease);
+  }
+
+  .logo svg {
+    transition: transform 0.3s var(--ease);
+  }
+
+  .logo:hover svg {
+    transform: rotate(-12deg);
+  }
+
+  .product-image {
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* A gentle zoom inside the well (the well crops it) */
+  .product-card:hover .product-image {
+    transform: scale(1.05);
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+
+  @keyframes drop-in {
+    from {
+      opacity: 0;
+      translate: 0 -24px;
+    }
+  }
+
+  .hero-copy > *,
+  .page-head > *,
+  .page-hero .container > * {
+    animation: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .hero-copy > :nth-child(2),
+  .page-head > :nth-child(2),
+  .page-hero .container > :nth-child(2) {
+    animation-delay: 0.08s;
+  }
+
+  .hero-copy > :nth-child(3),
+  .page-head > :nth-child(3),
+  .page-hero .container > :nth-child(3) {
+    animation-delay: 0.16s;
+  }
+
+  .hero-copy > :nth-child(4),
+  .page-hero .container > :nth-child(4) {
+    animation-delay: 0.24s;
+  }
+
+  .hero-copy > :nth-child(5) {
+    animation-delay: 0.32s;
+  }
+
+  .hero-tile,
+  .hero-stamp {
+    animation: drop-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .hero-tile {
+    transition:
+      transform 0.15s var(--ease),
+      box-shadow 0.15s var(--ease);
+  }
+
+  a.hero-tile:hover,
+  a.hero-tile:focus-visible {
+    transform: translate(-3px, -3px);
+  }
+
+  a.hero-tile:active {
+    transform: translate(3px, 3px);
+  }
+
+  .hero-tile--2 {
+    animation-delay: 0.12s;
+  }
+
+  .hero-tile--3 {
+    animation-delay: 0.24s;
+  }
+
+  .hero-stamp {
+    animation-delay: 0.4s;
+  }
+
+  /* --i is set per card by products.ui.ts, so cards appear one after another */
+  .product-card {
+    animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(min(var(--i, 0), 12) * 40ms);
+  }
+
+  .toast {
+    transition:
+      opacity 0.25s,
+      translate 0.25s,
+      visibility 0.25s;
+  }
+
+  .toast:not(.is-open) {
+    translate: 0 1rem;
+  }
+}
+
+/* ---------- Larger screens ---------- */
+/* From 384px there is room for 44px theme switch targets */
+@media (min-width: 24rem) {
+  .theme-switch {
+    gap: 0.125rem;
+  }
+
+  .theme-switch label {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
+@media (min-width: 30rem) {
+  h1,
+  h2 {
+    hyphens: manual;
+  }
+
+  .header-inner {
+    column-gap: 1rem;
+  }
+
+  .logo {
+    gap: 0.5rem;
+    font-size: 1.25rem;
+  }
+
+  .logo svg {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .nav-list {
+    gap: 0.25rem;
+  }
+
+  .nav-list a {
+    padding: 0 0.75rem;
+  }
+
+  .nav-list a[aria-current="page"]::before {
+    content: "";
+    flex: none;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Cart rows: the line total next to the name, − / + and Remove under the price */
+  .cart-item {
+    grid-template-areas:
+      "thumb name line"
+      "thumb unit unit"
+      "thumb qty remove";
+  }
+
+  .cart-line {
+    margin-top: 0;
+    text-align: right;
+  }
+}
+
+@media (min-width: 40rem) {
+  /* One row: logo on the left, nav in the middle, theme switch on the right */
+  .header-inner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+  }
+
+  .logo {
+    justify-self: start;
+  }
+
+  /* Search on its own row, Category and Sort side by side: in three columns
+     "All categories" was cut off below about 800px. Three columns from 62.5rem. */
+  .filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 1.5rem;
+  }
+
+  .filters > .field:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 2rem 1.5rem;
+  }
+
+  .product-card {
+    padding: 0.75rem;
+    border-radius: var(--st-radius);
+    box-shadow: var(--st-shadow-lg) var(--st-shadow-lg) 0 var(--st-shade);
+  }
+
+  .product-media {
+    border-radius: 16px;
+  }
+
+  .product-body {
+    padding: 1rem 0.375rem 0.375rem;
+  }
+
+  .product-body h3 {
+    font-size: 1.125rem;
+  }
+
+  .price {
+    font-size: 1.75rem;
+  }
+
+  .toast {
+    left: auto;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    width: 27rem;
+  }
+
+  .register-form,
+  .contact-form,
+  .cart-summary:not([hidden]) {
+    padding: 2rem;
+  }
+
+  .cta-card {
+    padding: 2.25rem;
+  }
+
+  .footer-card {
+    padding: 2.25rem;
+  }
+
+  .prose th,
+  .prose td {
+    padding: 0.75rem 1rem;
+  }
+
+  .prose tbody th {
+    white-space: nowrap;
+  }
+
+  .credits-table img {
+    width: 4rem;
+    height: 4rem;
+  }
+}
+
+@media (min-width: 48rem) {
+  .hero {
+    padding-block: 4rem 5rem;
+  }
+
+  .hero-inner {
+    grid-template-columns: 1.1fr 1fr;
+  }
+
+  .perks ul {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .join {
+    padding-block: 5.5rem;
+  }
+
+  .join-inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+  }
+
+  .footer-nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 62.5rem) {
+  .container {
+    width: min(100% - 5rem, 80rem);
+  }
+
+  .page-head,
+  .page-hero {
+    padding-top: 4rem;
+  }
+
+  .filters {
+    grid-template-columns: minmax(0, 2fr) repeat(2, minmax(12.5rem, 1fr));
+  }
+
+  .filters > .field:first-child {
+    grid-column: auto;
+  }
+
+  /* Name on the left, the three link groups on the right */
+  .footer-card {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    column-gap: 2.5rem;
+  }
+
+  .footer-bar {
+    grid-column: 1 / -1;
+  }
+
+  .cart-layout {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+    gap: 2.5rem;
+  }
+}
+
+/* Header sticks: only where it is one row (from 40rem) and the screen is tall
+   enough (30rem) for it to cover little. It is then 3.75rem + its 2px border tall;
+   scroll-padding keeps a focused or linked element 1rem below it. */
+@media (min-width: 40rem) and (min-height: 30rem) {
+  html {
+    scroll-padding-top: calc(4.75rem + 2px);
+  }
+
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+}
+
+/* The cart summary sticks next to the list only where all of it fits on screen
+   under the header, so its last button can always be scrolled to */
+@media (min-width: 62.5rem) and (min-height: 45rem) {
+  .cart-summary:not([hidden]) {
+    position: sticky;
+    top: 6rem;
+  }
+}
+
+/* ---------- Product page & checkout ---------- */
+/* product.html, checkout.html, and the links on product cards (shop page and
+   "More in …" on the product page). Base styles for phones, wider screens below. */
+
+/* Product cards: the picture and the name open the product page */
+a.product-media {
+  display: block;
+}
+
+.product-link {
+  text-decoration: none;
+}
+
+.product-link:hover {
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-st-pink-shade);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.product-page,
+.checkout-page {
+  padding-bottom: 4rem;
+}
+
+/* "Back to shop": a small ghost pill with an arrow (hidden from screen readers) */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  margin: 1.5rem 0 1.25rem;
+  padding: 0 1.125rem;
+  border: 2px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: 700 0.875rem/1 var(--font-sans);
+  text-decoration: none;
+  box-shadow: var(--st-shadow-sm) var(--st-shadow-sm) 0
+    var(--color-st-lav-shade);
+}
+
+.back-link::before {
+  content: "←" / "";
+}
+
+.back-link:hover {
+  box-shadow: calc(var(--st-shadow-sm) + 2px) calc(var(--st-shadow-sm) + 2px) 0
+    var(--color-st-lav-shade);
+}
+
+/* Product detail: picture first on phones, side by side on wider screens.
+   `hidden` must win, so only set display when it is shown. */
+.product-detail:not([hidden]) {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+}
+
+/* Big square sticker: tint wash inside, shade shadow outside */
+.product-detail-media {
+  width: 100%;
+  max-width: 34rem;
+  aspect-ratio: 1;
+  padding: 12%;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius);
+  background: color-mix(in srgb, var(--st-tint) 45%, var(--color-st-paper));
+  box-shadow: var(--st-shadow-lg) var(--st-shadow-lg) 0 var(--st-shade);
+}
+
+.product-detail-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.product-detail-body .eyebrow {
+  margin-bottom: 0.5rem;
+}
+
+.product-detail-body h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 6vw, 4.75rem);
+  line-height: 0.94;
+  overflow-wrap: anywhere;
+}
+
+.product-detail-price {
+  margin: 0.75rem 0 1.25rem;
+  font: 900 2.5rem/1 var(--font-poster);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.product-detail-body .button {
+  width: 100%;
+}
+
+/* Not found: the dashed empty-state card, with a heading */
+.product-missing h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 3rem);
+}
+
+.product-missing p {
+  max-width: 30rem;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--color-smoke);
+}
+
+/* "More in Bags" */
+.related {
+  margin-top: 4rem;
+}
+
+.related h2 {
+  margin-bottom: 1.5rem;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+}
+
+/* Checkout: the demo notice is a yellow sticker, so it can't be missed */
+.demo-note {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0.5rem 0 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius-xs);
+  background: var(--color-st-yellow);
+  color: var(--color-on-fill);
+  font-weight: 700;
+  line-height: 1.4;
+  box-shadow: var(--st-shadow-sm) var(--st-shadow-sm) 0
+    var(--color-st-yellow-shade);
+}
+
+/* `hidden` must win, so only set display when the layout is shown */
+.checkout-layout:not([hidden]) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.checkout-form {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius);
+  background: var(--color-card);
+  box-shadow: var(--st-shadow-lg) var(--st-shadow-lg) 0
+    var(--color-st-pink-shade);
+}
+
+.checkout-form h2,
+.checkout-done h2 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+/* City + postal code: stacked on phones, side by side from 30rem */
+.field-row {
+  display: grid;
+  gap: 1.25rem;
+}
+
+/* Order lines, in the summary and in the confirmation */
+.checkout-lines {
+  display: grid;
+  gap: 0.875rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checkout-summary .checkout-lines {
+  padding-bottom: 1rem;
+  border-bottom: 1.5px solid var(--color-hairline-2);
+}
+
+/* On phones the line total goes under the name; from 30rem it sits on the right */
+.checkout-line {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  grid-template-areas:
+    "thumb name"
+    "thumb qty"
+    "thumb total";
+  gap: 0.125rem 0.75rem;
+  align-items: center;
+}
+
+.checkout-thumb {
+  grid-area: thumb;
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 0.25rem;
+  border: 1.5px solid var(--color-hairline-2);
+  border-radius: var(--st-radius-xs);
+  background: color-mix(
+    in srgb,
+    var(--color-st-lav) 35%,
+    var(--color-st-paper)
+  );
+}
+
+.checkout-line-name {
+  grid-area: name;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.checkout-line-qty {
+  grid-area: qty;
+  font: 400 0.8125rem/1.4 var(--font-mono);
+  color: var(--color-smoke);
+}
+
+.checkout-line-total {
+  grid-area: total;
+  font: 900 1.125rem/1 var(--font-poster);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* Confirmation: a card with a green shadow. `hidden` must win, as above. */
+.checkout-done:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 40rem;
+  padding: 1.5rem;
+  border: 2px solid var(--color-line);
+  border-radius: var(--st-radius);
+  background: var(--color-card);
+  box-shadow: var(--st-shadow-lg) var(--st-shadow-lg) 0
+    var(--color-st-green-shade);
+}
+
+.checkout-done h2 {
+  overflow-wrap: anywhere;
+}
+
+.checkout-done h3 {
+  margin: 0.5rem 0 0;
+}
+
+.checkout-done-lead {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.45;
+  color: var(--color-smoke);
+}
+
+.checkout-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  margin: 0;
+}
+
+.checkout-row > span {
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+}
+
+.checkout-done .button {
+  align-self: flex-start;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .back-link {
+    transition:
+      transform 0.15s var(--ease),
+      box-shadow 0.15s var(--ease);
+  }
+
+  .back-link:hover {
+    transform: translate(-2px, -2px);
+  }
+
+  .back-link:active {
+    transform: translate(2px, 2px);
+  }
+}
+
+@media (min-width: 30rem) {
+  .field-row {
+    grid-template-columns: 3fr 2fr;
+  }
+
+  .checkout-line {
+    grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      "thumb name total"
+      "thumb qty qty";
+  }
+
+  .checkout-line-total {
+    text-align: right;
+  }
+
+  .product-detail-body .button {
+    width: auto;
+  }
+}
+
+@media (min-width: 40rem) {
+  .checkout-form,
+  .checkout-done:not([hidden]) {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 48rem) {
+  .product-detail:not([hidden]) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 3rem;
+  }
+}
+
+@media (min-width: 62.5rem) {
+  .product-detail:not([hidden]) {
+    gap: 4rem;
+  }
+
+  .checkout-layout:not([hidden]) {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+    gap: 2.5rem;
+  }
+}
