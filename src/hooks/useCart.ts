@@ -27,6 +27,8 @@ export interface CartContextValue {
 // Filled by <CartProvider> (components/CartProvider.tsx), the only place that
 // knows the cart lives in cart.state.ts and localStorage
 export const CartContext = createContext<CartContextValue | null>(null);
+// The name React DevTools shows for the provider: "CartContext.Provider"
+CartContext.displayName = "CartContext";
 
 export function useCart(): CartContextValue {
   const value = use(CartContext);
