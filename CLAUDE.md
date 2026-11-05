@@ -63,6 +63,7 @@ src/
 └── styles.css        copied from the first repo, so the look is the same
 tests/                node:test files: the copied Day 3 tests, messages, page and the README component tree
 debug-lab-log.md      the 5 Debug Lab bugs: what I saw, the component, how I found it, the cause, the fix
+docs/debug-lab/       React DevTools screenshots for each Debug Lab step (linked from debug-lab-log.md)
 public/               api/products.json and products/ (pictures; credits in CREDITS.md)
 ```
 
