@@ -4,10 +4,38 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ShopBoard</title>
+    <meta
+      name="description"
+      content="Search, filter and sort bags, shoes and accessories in ShopBoard, a demo shop built for a course. Nothing is really sold."
+    />
+    <meta property="og:title" content="Shop · ShopBoard" />
+    <meta
+      property="og:description"
+      content="Search, filter and sort bags, shoes and accessories in ShopBoard, a demo shop built for a course. Nothing is really sold."
+    />
+    <meta property="og:type" content="website" />
+    <title>Shop · ShopBoard</title>
+    <script>
+      // Applies the saved theme before the page is drawn, so it never flashes.
+      // The same key is read and written by src/modules/theme/theme.state.ts.
+      try {
+        var theme = localStorage.getItem("shopboard-theme");
+        if (theme === "light" || theme === "dark")
+          document.documentElement.dataset.theme = theme;
+      } catch (error) {}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,900&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..700&display=swap"
+    />
+    <link rel="stylesheet" href="/src/styles.css" />
   </head>
-  <body>
+  <body data-page="shop">
+    <!-- React draws the whole page here (src/main.tsx): header, content, footer -->
     <div id="root"></div>
+    <noscript><p>Please enable JavaScript to see the products.</p></noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
