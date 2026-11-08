@@ -6,9 +6,9 @@
 // module. Each copy has its own cart in memory, like a separate browser tab.
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import type { CartItem } from "../src/modules/cart/cart.types.ts";
+import type { CartItem } from "../src/features/cart/cart.types.ts";
 
-type CartState = typeof import("../src/modules/cart/cart.state.ts");
+type CartState = typeof import("../src/features/cart/cart.state.ts");
 
 const KEY = "shopboard-cart";
 
@@ -66,7 +66,7 @@ async function openTab(storage: FakeStorage): Promise<CartState> {
     writable: true,
   });
   copies += 1;
-  return import(`../src/modules/cart/cart.state.ts?tab=${copies}`);
+  return import(`../src/features/cart/cart.state.ts?tab=${copies}`);
 }
 
 // A storage that already holds a cart, and a tab that loaded it

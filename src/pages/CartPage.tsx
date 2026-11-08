@@ -1,26 +1,27 @@
 import { useLayoutEffect, useRef } from "react";
-import { CartItemRow } from "../components/CartItemRow.tsx";
-import { CartSummary } from "../components/CartSummary.tsx";
-import { StatusMessage } from "../components/StatusMessage.tsx";
-import type { StatusMessageProps } from "../components/StatusMessage.tsx";
-import { useAnnouncer } from "../hooks/useAnnouncer.ts";
-import { useCart } from "../hooks/useCart.ts";
-import { useProducts } from "../hooks/useProducts.ts";
-import { useStorageSync } from "../hooks/useStorageSync.ts";
+import { Link } from "react-router-dom";
+import { CartItemRow } from "../features/cart/components/CartItemRow.tsx";
+import { CartSummary } from "../features/cart/components/CartSummary.tsx";
+import { StatusMessage } from "../shared/components/StatusMessage.tsx";
+import type { StatusMessageProps } from "../shared/components/StatusMessage.tsx";
+import { useAnnouncer } from "../shared/hooks/useAnnouncer.ts";
+import { useCart } from "../features/cart/hooks/useCart.ts";
+import { useProducts } from "../features/products/hooks/useProducts.ts";
+import { useStorageSync } from "../shared/hooks/useStorageSync.ts";
 import { describeCartChange, withSavedItems } from "../lib/messages.ts";
 import {
   getCartCount,
   getCartLines,
   getCartTotal,
   getItemQty,
-} from "../modules/cart/cart.logic.ts";
-import type { CartChange, CartItem } from "../modules/cart/cart.types.ts";
-import type { Product } from "../modules/products/products.types.ts";
+} from "../features/cart/cart.logic.ts";
+import type { CartChange, CartItem } from "../features/cart/cart.types.ts";
+import type { Product } from "../features/products/products.types.ts";
 
 // One empty list for "no products yet", so it is the same list on every render
 const NO_PRODUCTS: readonly Product[] = [];
 
-// The cart (cart.html): the rows (+ / − / Remove), the summary and Clear cart. Prices
+// The cart: the rows (+ / − / Remove), the summary, and Clear cart. Prices
 // always come from the product data; the saved cart only has { id, qty }.
 export function CartPage() {
   const { state: cart, actions } = useCart();
@@ -68,10 +69,10 @@ export function CartPage() {
     const qty = getItemQty(items, product.id);
     if (qty > 0) {
       announceChange({ type: "quantity", name: product.name, qty }, items);
-      return; // the row stays, and so does the focused button
+      return;
     }
     announceChange({ type: "removed", name: product.name }, items);
-    headingRef.current?.focus(); // the row and its buttons are gone
+    headingRef.current?.focus();
   }
 
   function handleRemove(product: Product): void {
@@ -81,8 +82,6 @@ export function CartPage() {
   }
 
   // Clearing removes every row at once and can't be undone, so ask first.
-  // confirm() is the browser's own dialog: it works with the keyboard and
-  // screen readers, and Cancel (or Esc) changes nothing.
   function handleClear(): void {
     if (!window.confirm("Remove all items from your cart?")) return;
     const items = actions.clear();
@@ -99,7 +98,6 @@ export function CartPage() {
           message: "Loading your cart…",
         };
       case "error":
-        // The rows can't be shown, but the saved items are kept: say so
         return {
           id: "cart-status",
           tone: "error",
@@ -120,9 +118,6 @@ export function CartPage() {
         </h1>
       </div>
 
-      {/* Screen readers aren't told when a row changes, so changes are also
-          said in words here. role="status" reads them politely; it is in the
-          page before the first change, or the first one would not be read. */}
       <p id="cart-announcer" className="visually-hidden" role="status">
         {announcement}
       </p>
@@ -131,14 +126,12 @@ export function CartPage() {
       {state.status === "ready" && lines.length === 0 ? (
         <div id="cart-empty" className="cart-empty-state">
           <p>Your cart is empty.</p>
-          <a className="button" href="index.html">
+          <Link className="button" to="/">
             Browse the shop
-          </a>
+          </Link>
         </div>
       ) : null}
 
-      {/* Always in the page (empty while there are no rows), so the space
-          above the footer is the same in every state */}
       <div className="cart-layout">
         {lines.length > 0 ? (
           <>

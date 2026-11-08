@@ -25,7 +25,12 @@
   },
   "overrides": [
     {
-      "files": ["src/modules/**/*.ts"],
+      "files": [
+        "src/features/*/*.logic.ts",
+        "src/features/*/*.state.ts",
+        "src/features/*/*.api.ts",
+        "src/features/*/*.types.ts"
+      ],
       "rules": {
         "unicorn/no-array-sort": "off"
       }

@@ -4,7 +4,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
-import { isProduct } from "../src/modules/products/products.logic.ts";
+import { isProduct } from "../src/features/products/products.logic.ts";
+import { HERO_TILES, getTileHref } from "../src/features/products/hero.ts";
 
 const publicDir = new URL("../public/", import.meta.url);
 const data: unknown = JSON.parse(
@@ -46,4 +47,21 @@ test("every image path is relative and the file exists in public/", () => {
       `${product.name}: ${product.image} is missing`,
     );
   }
+});
+
+test("each hero tile matches its product in products.json", () => {
+  const products = list.filter(isProduct);
+  for (const tile of HERO_TILES) {
+    const product = products.find((entry) => entry.id === tile.id);
+    assert.ok(product, `hero tile ${tile.id} has no product`);
+    assert.equal(tile.name, product.name);
+    assert.equal(tile.image, product.image);
+  }
+});
+
+test("a hero tile links to the shop searching for its product", () => {
+  assert.equal(
+    getTileHref({ id: 1, name: "Leather Tote Bag", image: "x.webp" }),
+    "index.html?q=Leather+Tote+Bag",
+  );
 });

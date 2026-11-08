@@ -1,7 +1,7 @@
 // The sentences the React pages show or announce, built from data.
 // Pure functions: everything comes in as arguments, a string goes out, so
 // tests/messages.test.ts can check every wording without a browser.
-import type { CartChange } from "../modules/cart/cart.types.ts";
+import type { CartChange } from "../features/cart/cart.types.ts";
 import { ApiError } from "../shared/api/client.ts";
 import { formatMoney } from "./format.ts";
 

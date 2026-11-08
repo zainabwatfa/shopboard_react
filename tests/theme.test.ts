@@ -3,7 +3,7 @@
 // every call, so one import is enough).
 import { beforeEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { parseThemeChoice } from "../src/modules/theme/theme.logic.ts";
+import { parseThemeChoice } from "../src/features/theme/theme.logic.ts";
 
 const KEY = "shopboard-theme";
 
@@ -38,7 +38,7 @@ Object.defineProperty(globalThis, "localStorage", {
   configurable: true,
 });
 const { getThemeChoice, saveThemeChoice } =
-  await import("../src/modules/theme/theme.state.ts");
+  await import("../src/features/theme/theme.state.ts");
 
 describe("parseThemeChoice", () => {
   test("keeps the three known choices", () => {

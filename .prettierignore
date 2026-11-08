@@ -5,16 +5,18 @@ package-lock.json
 
 # The product data, copied as it is from the first ShopBoard repo
 public/api/products.json
+public/api/products/
+
 
 # Day 3 files, copied from the first repo (zainabwatfa/shopboard). The only
 # change allowed is `import type`, so Prettier must never reformat them.
-src/modules/products/products.types.ts
-src/modules/products/products.api.ts
-src/modules/products/products.logic.ts
-src/modules/cart/cart.types.ts
-src/modules/cart/cart.state.ts
-src/modules/cart/cart.logic.ts
-src/modules/theme/theme.types.ts
-src/modules/theme/theme.state.ts
-src/modules/theme/theme.logic.ts
+src/features/products/products.types.ts
+src/features/products/products.api.ts
+src/features/products/products.logic.ts
+src/features/cart/cart.types.ts
+src/features/cart/cart.state.ts
+src/features/cart/cart.logic.ts
+src/features/theme/theme.types.ts
+src/features/theme/theme.state.ts
+src/features/theme/theme.logic.ts
 src/shared/api/client.ts

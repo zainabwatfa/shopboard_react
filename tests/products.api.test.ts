@@ -4,15 +4,18 @@
 import { afterEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { ApiError } from "../src/shared/api/client.ts";
-import { getProducts } from "../src/modules/products/products.api.ts";
+import {
+  getProduct,
+  getProducts,
+} from "../src/features/products/products.api.ts";
 
 const realFetch = globalThis.fetch;
 const requested: string[] = [];
 
-function stubFetch(respond: () => Promise<Response>): void {
+function stubFetch(respond: (input: string) => Promise<Response>): void {
   globalThis.fetch = (input: string | URL | Request): Promise<Response> => {
     requested.push(String(input));
-    return respond();
+    return respond(String(input));
   };
 }
 
@@ -98,5 +101,51 @@ describe("getProducts", () => {
       Promise.resolve(new Response("<!doctype html>", { status: 200 })),
     );
     await assert.rejects(getProducts(), (error) => error instanceof ApiError);
+  });
+});
+
+describe("getProduct", () => {
+  test("loads a single product by id from its API endpoint", async () => {
+    stubFetch((url) => {
+      if (url === "api/products/1.json") {
+        return json({
+          id: 1,
+          name: "Leather Tote Bag",
+          category: "Bags",
+          price: 89,
+          image: "products/leather-tote-bag.webp",
+        });
+      }
+      return json({}, 404);
+    });
+    const product = await getProduct(1);
+    assert.equal(product?.id, 1);
+    assert.equal(product?.name, "Leather Tote Bag");
+  });
+
+  test("falls back to the products list when single endpoint is 404", async () => {
+    stubFetch((url) => {
+      if (url === "api/products/2.json") {
+        return json({}, 404);
+      }
+      return json([
+        {
+          id: 2,
+          name: "Canvas Backpack",
+          category: "Bags",
+          price: 49,
+          image: "products/canvas-backpack.webp",
+        },
+      ]);
+    });
+    const product = await getProduct(2);
+    assert.equal(product?.id, 2);
+    assert.equal(product?.name, "Canvas Backpack");
+  });
+
+  test("returns null when product does not exist", async () => {
+    stubFetch(() => json([], 200));
+    const product = await getProduct(999);
+    assert.equal(product, null);
   });
 });

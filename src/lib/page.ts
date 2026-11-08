@@ -1,35 +1,30 @@
 // Which page is open, and the query part of the address bar.
-// Each HTML file says which page it is: <body data-page="shop">.
 
-// index.html is the shop, cart.html the cart
-export type Page = "shop" | "cart";
+export type Page =
+  "shop" | "product" | "cart" | "checkout" | "about" | "faq" | "not-found";
 
-const pages: readonly Page[] = ["shop", "cart"];
+const htmlPages: readonly string[] = ["shop", "cart"];
 
-// A type guard: text from the page becomes a Page only after this check
-function isPage(value: unknown): value is Page {
-  return pages.some((page) => page === value);
+function isHtmlPage(value: unknown): value is "shop" | "cart" {
+  return htmlPages.some((page) => page === value);
 }
 
-// The attribute is text from the page, so check it: a missing or unknown
-// value gives null
-export function parsePage(value: string | undefined): Page | null {
-  return isPage(value) ? value : null;
+// The attribute is text from the HTML body dataset: a missing or unknown value gives null
+export function parsePage(value: string | undefined): "shop" | "cart" | null {
+  return isHtmlPage(value) ? value : null;
 }
 
-export function getCurrentPage(): Page | null {
+export function getCurrentPage(): "shop" | "cart" | null {
   return parsePage(document.body.dataset.page);
 }
 
 // The whole query part of the address as plain text, e.g. "?category=Bags",
-// or "" when there is none. The caller checks it (parseFilterQuery).
+// or "" when there is none.
 export function getQueryString(): string {
   return window.location.search;
 }
 
-// Puts `query` ("?category=Bags", or "" for none) in the address bar without
-// reloading the page or adding a Back step, so the page as it is now can be
-// bookmarked, shared or reloaded. Keeps the path and any #part.
+// Puts `query` in the address bar without reloading
 export function replaceQueryString(query: string): void {
   const { pathname, search, hash } = window.location;
   if (search === query) return;

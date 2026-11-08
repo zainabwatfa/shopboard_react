@@ -565,6 +565,11 @@ a.button[href^="https://"]::after {
   line-height: 0.94;
 }
 
+/* Under the hero on the shop, the collection heading is an h2 */
+.page-head h2 {
+  font-size: clamp(2.25rem, 4.5vw, 3.75rem);
+}
+
 .page-head p:not(.eyebrow) {
   max-width: 35rem;
   font-size: 1.125rem;
@@ -647,7 +652,7 @@ a.button[href^="https://"]::after {
   margin-top: 2rem;
 }
 
-/* Small line under the hero buttons that links to the About page */
+/* Small line under the hero buttons */
 .hero-note {
   margin: 1.75rem 0 0;
   font: 400 0.8125rem/1.5 var(--font-mono);
@@ -856,9 +861,23 @@ textarea:focus-visible {
 /* Only flag fields after the user has typed something invalid */
 input:user-invalid,
 select:user-invalid,
-textarea:user-invalid {
+textarea:user-invalid,
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
   border-color: var(--color-down);
   box-shadow: var(--st-shadow-sm) var(--st-shadow-sm) 0 var(--color-down);
+}
+
+.field-error {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-down);
+}
+
+.field-label-error {
+  color: var(--color-down);
 }
 
 .hint {

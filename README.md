@@ -4,7 +4,7 @@ The React + TypeScript version of ShopBoard, a demo shop built for a course. It 
 
 The first version (plain TypeScript, no framework) lives in [zainabwatfa/shopboard](https://github.com/zainabwatfa/shopboard).
 
-Two pages: `index.html` is the shop (search, category filter and sort, kept in the URL, and product cards) and `cart.html` is the cart (+ / − / Remove, total, Clear cart). The cart is saved on this device (`localStorage`) and stays in sync across open tabs. A System / Light / Dark switch is on both pages. Product data comes from `public/api/products.json`.
+Two pages: `index.html` is the shop (a hero with three product tiles, then search, category filter and sort, kept in the URL, and product cards) and `cart.html` is the cart (+ / − / Remove, total, Clear cart). The cart is saved on this device (`localStorage`) and stays in sync across open tabs. A System / Light / Dark switch is on both pages. Product data comes from `public/api/products.json`.
 
 ## Scripts
 
@@ -29,17 +29,21 @@ src/
 ├── main.tsx            reads <body data-page="shop|cart"> and renders <App page>
 ├── App.tsx             the top of the component tree
 ├── pages/              ShopPage, CartPage
-├── components/         one reusable component per file, each with a typed Props interface
-├── hooks/              useProducts, useFilters, useCart, useTheme, useToast, useAnnouncer, useStorageSync
+├── features/           one folder per feature (cart, products, theme): its Day 3 logic copied
+│                       from the first repo, plus its own components/ and hooks/
+├── shared/             what several features use: api/client.ts (fetchJson, ApiError, API base URL),
+│                       components/ (Layout, Header, Toast…) and hooks/ (useToast, useAnnouncer, useStorageSync)
 ├── lib/                messages (every sentence the pages show), format, page, siteLinks
-├── modules/            Day 3 logic copied from the first repo: products, cart, theme
-├── shared/api/         client.ts: fetchJson and ApiError (copied from the first repo)
 └── styles.css          the same styles as the first repo
 tests/                  node:test tests for the logic, the cart state, the API, the data and the messages
 public/                 api/products.json and the product pictures
 ```
 
-The files in `src/modules/` and `src/shared/api/client.ts` are copied unchanged from the first repo (only `import type` may change), so they are listed in `.prettierignore`.
+The Day 3 files (`*.types.ts`, `*.logic.ts`, `*.state.ts`, `*.api.ts` in `src/features/*/`) and `src/shared/api/client.ts` are copied unchanged from the first repo (only `import type` may change), so they are listed in `.prettierignore`. The one exception is the API base URL in `client.ts`.
+
+## API base URL
+
+By default the data is read from this site (`public/api/products.json`). To read it from another server, copy `.env.example` to `.env` and set `VITE_API_BASE_URL` (for example `https://api.example.com/v1/`). `resolveApiUrl` in `client.ts` puts it in front of every API path.
 
 ## Component tree
 
@@ -47,20 +51,23 @@ What React draws, from `App` down. Next to each component: the props it gets. `[
 component that owns a piece of state (through the hook in brackets). `main.tsx` wraps `App` in
 `<StrictMode>`, which React DevTools does not list.
 
-### Shop page (`index.html`)
+### Primary routes (Shop, Product, Cart)
 
 ```
-App                       { page }
+App                       { page? }
 └── CartProvider          { children }                                          [state: cart items]
     └── CartContext.Provider { value }                                            (shares the cart)
-        └── Layout        { current, mainClassName, children }                  [state: theme choice (useTheme)]
+        └── Layout        { current?, mainClassName?, children? }               [state: theme choice (useTheme)]
             ├── Header    { children }
-            │   ├── MainNav       { current, cartCount }
+            │   ├── MainNav       { current, cartCount? }
             │   │   ├── NavLink   { href, isCurrent, children }   "Shop"
+            │   │   ├── NavLink   { href, isCurrent, children }   "About"
+            │   │   ├── NavLink   { href, isCurrent, children }   "FAQ"
             │   │   └── NavLink   { href, isCurrent, children }   "Cart"
             │   └── ThemeSwitch   { choice, onChange }
             ├── ShopPage  (no props)                                            [state: products load + retry (useProducts),
             │   │                                                                       filters (useFilters), toast (useToast)]
+            │   ├── Hero          { tiles, productCount, onPick }   one tile per product, key = tile.id
             │   ├── ShopFilters   { filters, onChange, disabled, searchRef }
             │   │   ├── SearchField   { id, label, value, placeholder, disabled, onChange, ref }
             │   │   ├── SelectField   { id, label, value, options, disabled, onChange }   Category
@@ -70,21 +77,14 @@ App                       { page }
             │   │   └── ProductCard   { product, position, onAdd }    one per product, key = product.id
             │   │       └── ProductImage  { src, className, size }
             │   └── Toast         { toast, onDismiss, duration? }                [state: text on screen]
-            └── Footer    { groups }
-```
-
-### Cart page (`cart.html`)
-
-```
-App                       { page }
-└── CartProvider          { children }                                          [state: cart items]
-    └── CartContext.Provider { value }
-        └── Layout        { current, mainClassName, children }                  [state: theme choice (useTheme)]
-            ├── Header    { children }
-            │   ├── MainNav       { current, cartCount }
-            │   │   ├── NavLink   { href, isCurrent, children }   "Shop"
-            │   │   └── NavLink   { href, isCurrent, children }   "Cart"
-            │   └── ThemeSwitch   { choice, onChange }
+            ├── ProductPage (no props)                                          [state: product load + retry (useProduct), toast (useToast)]
+            │   ├── StatusMessage { id, tone, message, action? }
+            │   ├── ProductDetail { product, onAdd }
+            │   │   └── ProductImage  { src, className, size }
+            │   ├── ProductGrid   { products, onAdd }
+            │   │   └── ProductCard   { product, position, onAdd }
+            │   │       └── ProductImage  { src, className, size }
+            │   └── Toast         { toast, onDismiss, duration? }
             ├── CartPage  (no props)                                            [state: products load + retry (useProducts),
             │   │                                                                       announcement (useAnnouncer)]
             │   ├── StatusMessage { id, tone, message, action? }
@@ -95,28 +95,50 @@ App                       { page }
             └── Footer    { groups }
 ```
 
+### Secondary routes (Checkout, About, FAQ, 404)
+
+```
+App                       { page? }
+└── CartProvider          { children }                                          [state: cart items]
+    └── CartContext.Provider { value }
+        └── Layout        { current?, mainClassName?, children? }               [state: theme choice (useTheme)]
+            ├── Header    { children }
+            │   ├── MainNav       { current, cartCount? }
+            │   │   └── NavLink   { href, isCurrent, children }
+            │   └── ThemeSwitch   { choice, onChange }
+            ├── CheckoutPage (no props)                                         [state: products load + retry (useProducts), submittedOrder]
+            │   ├── StatusMessage { id, tone, message, action? }
+            │   └── ProductImage  { src, className, size }
+            ├── AboutPage (no props)
+            ├── FaqPage   (no props)
+            ├── NotFoundPage (no props)
+            └── Footer    { groups }
+```
+
 When the cart is empty, `CartPage` shows the empty message instead of the rows and the summary. While
 loading or after an error, `StatusMessage` shows the message (and **Try again**) and the rows wait.
 
 ### Who owns each piece of state
 
-| State                                                  | Owner (file)                                        | Hook           | Who uses it                                                                                                                                                                                                                                                             |
-| ------------------------------------------------------ | --------------------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cart items `[{ id, qty }]`                             | `CartProvider` (`components/CartProvider.tsx`)      | `useState`     | Shared through `CartContext` (`useCart()`): `Layout` (badge count), `ShopPage` (add), `CartPage` (rows, + / − / Remove / Clear). Saved by `cart.state.ts` in `localStorage`, so it survives a refresh; reloaded on the `storage` event (another tab) and on `pageshow`. |
-| Theme choice (System / Light / Dark)                   | `Layout` (`components/Layout.tsx`)                  | `useTheme`     | Passed to `ThemeSwitch` as `choice` / `onChange`. Saved by `theme.state.ts`.                                                                                                                                                                                            |
-| Products: loading / ready / error, and the retry count | `ShopPage` and `CartPage` (each page loads its own) | `useProducts`  | The page passes what to show to `StatusMessage`, `ProductGrid` or the cart rows. **Try again** bumps the retry count.                                                                                                                                                   |
-| Filters: search, category, sort                        | `ShopPage` (`pages/ShopPage.tsx`)                   | `useFilters`   | Passed to `ShopFilters`; kept in the URL (`?q=&category=&sort=`).                                                                                                                                                                                                       |
-| Toast message                                          | `ShopPage`                                          | `useToast`     | Passed to `Toast` as `toast` / `onDismiss`.                                                                                                                                                                                                                             |
-| Text on screen in the toast                            | `Toast` (`components/Toast.tsx`)                    | `useState`     | Its own: set one frame later, so a screen reader reads the same message again.                                                                                                                                                                                          |
-| Cart announcement (live region)                        | `CartPage` (`pages/CartPage.tsx`)                   | `useAnnouncer` | Drawn by `CartPage` in a polite live region ("Silver Watch removed from your cart…").                                                                                                                                                                                   |
+| State                                                  | Owner (file)                                                 | Hook           | Who uses it                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------ | ------------------------------------------------------------ | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cart items `[{ id, qty }]`                             | `CartProvider` (`features/cart/components/CartProvider.tsx`) | `useState`     | Shared through `CartContext` (`useCart()`): `MainNav` (badge count), `ShopPage` (add), `ProductPage` (add), `CartPage` (rows, + / − / Remove / Clear), `CheckoutPage` (summary, clear on place order). Saved by `cart.state.ts` in `localStorage`, so it survives a refresh; reloaded on the `storage` event (another tab) and on `pageshow`. |
+| Theme choice (System / Light / Dark)                   | `Layout` (`shared/components/Layout.tsx`)                    | `useTheme`     | Passed to `ThemeSwitch` as `choice` / `onChange`. Saved by `theme.state.ts`.                                                                                                                                                                                                                                                                  |
+| Products: loading / ready / error, and the retry count | `ShopPage`, `CartPage`, and `CheckoutPage`                   | `useProducts`  | The page passes what to show to `StatusMessage`, `ProductGrid`, or the cart rows. **Try again** bumps the retry count.                                                                                                                                                                                                                        |
+| Single product: loading / ready / error / not-found    | `ProductPage` (`pages/ProductPage.tsx`)                      | `useProduct`   | Loads a single product from the API by its id, and displays details and related items. **Try again** bumps the retry count.                                                                                                                                                                                                                   |
+| Filters: search, category, sort                        | `ShopPage` (`pages/ShopPage.tsx`)                            | `useFilters`   | Passed to `ShopFilters`; kept in the URL (`?q=&category=&sort=`).                                                                                                                                                                                                                                                                             |
+| Toast message                                          | `ShopPage` and `ProductPage`                                 | `useToast`     | Passed to `Toast` as `toast` / `onDismiss`.                                                                                                                                                                                                                                                                                                   |
+| Text on screen in the toast                            | `Toast` (`shared/components/Toast.tsx`)                      | `useState`     | Its own: set one frame later, so a screen reader reads the same message again.                                                                                                                                                                                                                                                                |
+| Cart announcement (live region)                        | `CartPage` (`pages/CartPage.tsx`)                            | `useAnnouncer` | Drawn by `CartPage` in a polite live region ("Silver Watch removed from your cart…").                                                                                                                                                                                                                                                         |
+| Checkout submitted order state                         | `CheckoutPage` (`pages/CheckoutPage.tsx`)                    | `useState`     | Displayed when the simulated order is confirmed.                                                                                                                                                                                                                                                                                              |
 
 Not state, on purpose:
 
 - **Derived during render:** the products shown (`filterProducts` + `sortProducts`, memoised in
-  `ShopPage`), the cart lines, count and total (`cart.logic.ts`), the badge count.
+  `ShopPage`), the hero sticker's product count, the cart lines, count and total (`cart.logic.ts`), the badge count.
 - **Refs:** `searchRef` (`ShopPage`, focus after **Clear filters**), the cart heading and the focus
   before a sync (`CartPage`), the status line (`StatusMessage`), timers (`Toast`).
-- **Constants:** the footer links (`lib/siteLinks.ts`), every sentence the pages show (`lib/messages.ts`).
+- **Constants:** the footer links (`lib/siteLinks.ts`), the hero tiles (`features/products/hero.ts`), every sentence the pages show (`lib/messages.ts`).
 
 ### Check it with React DevTools
 

@@ -14,7 +14,8 @@ const trees = [...section.matchAll(/```\n([\s\S]*?)```/g)]
   .map((match) => match[1])
   .join("\n");
 
-// Component names from file names: App.tsx, components/*.tsx, pages/*.tsx
+// Component names from file names: App.tsx, features/*/components/*.tsx,
+// shared/components/*.tsx and pages/*.tsx
 const src = new URL("../src/", import.meta.url);
 const fromFolder = (folder: string): string[] =>
   readdirSync(new URL(folder, src))
@@ -22,7 +23,10 @@ const fromFolder = (folder: string): string[] =>
     .map((file) => file.replace(/\.tsx$/, ""));
 const componentFiles = [
   "App",
-  ...fromFolder("components/"),
+  ...readdirSync(new URL("features/", src)).flatMap((feature) =>
+    fromFolder(`features/${feature}/components/`),
+  ),
+  ...fromFolder("shared/components/"),
   ...fromFolder("pages/"),
 ];
 

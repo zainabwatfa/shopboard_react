@@ -19,8 +19,8 @@ Run all of them after every change. `.github/workflows/ci.yml` runs lint, typech
 
 ## Rules (the course checklist)
 
-1. **Day 3 files are copied, not edited.** Everything in `src/modules/` and `src/shared/api/client.ts` comes from the first repo (commit d77a533, where every `as` had been replaced by type guards). The only change allowed is `import type`. They are listed in `.prettierignore`, so Prettier never reformats them. React code calls them; it never copies their logic.
-2. **No `any`, no `as` (not even `as const`), no non-null `!`.** Check with `instanceof`, `typeof` or a type guard instead. oxlint enforces this. `grep -rn " as " src/modules src/shared` must find no type assertion.
+1. **Day 3 files are copied, not edited.** The `*.types.ts`, `*.logic.ts`, `*.state.ts` and `*.api.ts` files in `src/features/*/`, and `src/shared/api/client.ts`, come from the first repo (commit d77a533, where every `as` had been replaced by type guards). The only change allowed is `import type`. One agreed exception: `client.ts` also reads the API base URL (`VITE_API_BASE_URL`, see `.env.example`) through `resolveApiUrl`, which the first repo did not have. They are listed in `.prettierignore`, so Prettier never reformats them. React code calls them; it never copies their logic.
+2. **No `any`, no `as` (not even `as const`), no non-null `!`.** Check with `instanceof`, `typeof` or a type guard instead. oxlint enforces this. `grep -rn " as " src/features src/shared` must find no type assertion.
 3. **List keys come from the data** (`product.id`, `group.heading`, `link.href`, `option.value`), never the array index.
 4. **Every state shows the right message.** Shop: "Loading products…", an error with **Try again** (retries without a reload), "No products are available right now." when the API gives none, "No products match your search." with **Clear filters**. Cart: "Loading your cart…", an error with **Try again** that says the saved items are kept, an empty cart with a link to the shop.
 5. **No React warnings in the Console.** Check in the browser after a change, not only with the tests.
@@ -52,16 +52,20 @@ From mistakes made while building this repo:
 
 ```
 src/
-├── modules/          Day 3 logic, copied unchanged (products, cart, theme: *.types / *.api / *.logic / *.state)
-├── shared/api/       client.ts: fetchJson, ApiError (copied unchanged; the only file that calls fetch)
-├── components/       one component per file, each with an exported `interface <Name>Props`
-├── hooks/            useProducts, useFilters, useCart (+ CartContext), useTheme, useToast, useAnnouncer, useStorageSync
+├── features/         one folder per feature: cart, products, theme
+│   └── <feature>/    its Day 3 files (*.types / *.api / *.logic / *.state, copied unchanged),
+│                     components/ and hooks/ that belong to it (products/ also has hero.ts)
+├── shared/           what several features use
+│   ├── api/          client.ts: fetchJson, ApiError, resolveApiUrl (the only file that calls fetch)
+│   ├── components/   Layout, Header, MainNav, NavLink, Footer, StatusMessage, Toast, SearchField, SelectField
+│   └── hooks/        useToast, useAnnouncer, useStorageSync
 ├── pages/            ShopPage.tsx, CartPage.tsx: decide what happens; components draw it
 ├── lib/              small helpers: messages.ts (every sentence the pages show, pure and tested), format.ts, page.ts, siteLinks.ts
+├── vite-env.d.ts     types for the VITE_ environment variables
 ├── main.tsx          reads <body data-page> and renders <App page> inside StrictMode
 ├── App.tsx           the top of the component tree: CartProvider > Layout > the page
 └── styles.css        copied from the first repo, so the look is the same
-tests/                node:test files: the copied Day 3 tests, messages, page and the README component tree
+tests/                node:test files: the copied Day 3 tests, the API client, messages, page and the README component tree
 debug-lab-log.md      the 5 Debug Lab bugs: what I saw, the component, how I found it, the cause, the fix
 docs/debug-lab/       React DevTools screenshots for each Debug Lab step (linked from debug-lab-log.md)
 public/               api/products.json and products/ (pictures; credits in CREDITS.md)

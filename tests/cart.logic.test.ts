@@ -8,9 +8,9 @@ import {
   getCartTotal,
   getItemQty,
   sanitizeCart,
-} from "../src/modules/cart/cart.logic.ts";
-import type { CartItem } from "../src/modules/cart/cart.types.ts";
-import type { Product } from "../src/modules/products/products.types.ts";
+} from "../src/features/cart/cart.logic.ts";
+import type { CartItem } from "../src/features/cart/cart.types.ts";
+import type { Product } from "../src/features/products/products.types.ts";
 
 // Real entries from public/api/products.json, frozen so nothing can change them
 const PRODUCTS: readonly Product[] = Object.freeze([

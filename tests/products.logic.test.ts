@@ -18,12 +18,12 @@ import {
   parseSortKey,
   sortProducts,
   toFilterQuery,
-} from "../src/modules/products/products.logic.ts";
+} from "../src/features/products/products.logic.ts";
 import type {
   Category,
   Filters,
   Product,
-} from "../src/modules/products/products.types.ts";
+} from "../src/features/products/products.types.ts";
 
 function product(
   id: number,

@@ -1,26 +1,29 @@
 import { useMemo, useRef } from "react";
-import { ProductGrid } from "../components/ProductGrid.tsx";
-import { ShopFilters } from "../components/ShopFilters.tsx";
-import { StatusMessage } from "../components/StatusMessage.tsx";
-import type { StatusMessageProps } from "../components/StatusMessage.tsx";
-import { Toast } from "../components/Toast.tsx";
-import { useCart } from "../hooks/useCart.ts";
-import { useFilters } from "../hooks/useFilters.ts";
-import { useProducts } from "../hooks/useProducts.ts";
-import { useToast } from "../hooks/useToast.ts";
+import { Hero } from "../features/products/components/Hero.tsx";
+import { ProductGrid } from "../features/products/components/ProductGrid.tsx";
+import { ShopFilters } from "../features/products/components/ShopFilters.tsx";
+import { StatusMessage } from "../shared/components/StatusMessage.tsx";
+import type { StatusMessageProps } from "../shared/components/StatusMessage.tsx";
+import { Toast } from "../shared/components/Toast.tsx";
+import { useCart } from "../features/cart/hooks/useCart.ts";
+import { useFilters } from "../features/products/hooks/useFilters.ts";
+import { useProducts } from "../features/products/hooks/useProducts.ts";
+import { useToast } from "../shared/hooks/useToast.ts";
+import { HERO_TILES } from "../features/products/hero.ts";
+import type { HeroTile } from "../features/products/hero.ts";
 import { getAddedMessage, getResultsStatus } from "../lib/messages.ts";
-import { getItemQty } from "../modules/cart/cart.logic.ts";
+import { getItemQty } from "../features/cart/cart.logic.ts";
 import {
   DEFAULT_FILTERS,
   filterProducts,
   sortProducts,
-} from "../modules/products/products.logic.ts";
-import type { Product } from "../modules/products/products.types.ts";
+} from "../features/products/products.logic.ts";
+import type { Product } from "../features/products/products.types.ts";
 
 // One empty list for "no products yet", so it is the same list on every render
 const NO_PRODUCTS: readonly Product[] = [];
 
-// The shop (index.html): search, category filter, sort and the product cards.
+// The shop (index.html): the hero, then search, category filter, sort and the product cards.
 // index.html?q=tote&category=Bags&sort=price-asc opens with those filters.
 export function ShopPage() {
   const { actions } = useCart();
@@ -57,6 +60,13 @@ export function ShopPage() {
     searchRef.current?.focus();
   }
 
+  // A hero tile: search for that product (other filters reset) and move
+  // focus to the search box, which also scrolls the list into view
+  function handlePickTile(tile: HeroTile): void {
+    setFilters({ ...DEFAULT_FILTERS, query: tile.name });
+    searchRef.current?.focus();
+  }
+
   function getStatus(): StatusMessageProps {
     switch (state.status) {
       case "loading":
@@ -88,11 +98,17 @@ export function ShopPage() {
 
   return (
     <>
+      <Hero
+        tiles={HERO_TILES}
+        productCount={products.length}
+        onPick={handlePickTile}
+      />
+
       <div className="page-head">
         <p className="eyebrow">The collection</p>
-        <h1 id="products-title">
+        <h2 id="products-title">
           Find your next <em>favourite</em>
-        </h1>
+        </h2>
         <p>
           Search by name, filter by category or sort by price. Everything you
           add waits in your cart.

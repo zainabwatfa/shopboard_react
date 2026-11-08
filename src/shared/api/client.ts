@@ -1,5 +1,18 @@
 // The one place that talks to the network. Every module loads data through fetchJson.
 
+// Where the API lives. Set VITE_API_BASE_URL in a .env file (see .env.example)
+// to load the data from another server, e.g. https://api.example.com/v1/.
+// Without it, paths start from the page, as before. Under node --test there is
+// no import.meta.env, hence the ?.
+const API_BASE_URL: string = import.meta.env?.VITE_API_BASE_URL ?? "";
+
+// Puts the base in front of a path, with exactly one "/" between them.
+// A full URL (https://…) is used as it is, and so is any path when there is no base.
+export function resolveApiUrl(path: string, base: string = API_BASE_URL): string {
+  if (base === "" || /^[a-z][a-z\d+.-]*:/i.test(path)) return path;
+  return `${base.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
+}
+
 // An error with the details a caller needs to decide what to show.
 // status is the HTTP status, or 0 when the request never reached the server.
 export class ApiError extends Error {
@@ -14,13 +27,14 @@ export class ApiError extends Error {
   }
 }
 
-// Loads a URL and returns its JSON body as T.
+// Loads a URL (a path is put after the API base first) and returns its JSON body as T.
 // T is only a promise to TypeScript, the JSON itself is not checked here.
 // When the shape matters, ask for `unknown` and check it (see products.api.ts).
 export async function fetchJson<T>(
-  url: string,
+  path: string,
   init?: RequestInit,
 ): Promise<T> {
+  const url = resolveApiUrl(path);
   let response: Response;
   try {
     response = await fetch(url, init);
