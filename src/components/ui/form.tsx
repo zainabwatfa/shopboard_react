@@ -1,31 +1,13 @@
-import {
-  cloneElement,
-  createContext,
-  isValidElement,
-  use,
-  useId,
-} from "react";
+import { cloneElement, isValidElement, useId } from "react";
 import type { ComponentProps, ReactNode } from "react";
-import {
-  Controller,
-  FormProvider,
-  useFormContext,
-} from "react-hook-form";
-import type {
-  ControllerProps,
-  FieldPath,
-  FieldValues,
-} from "react-hook-form";
+import { Controller, FormProvider } from "react-hook-form";
+import type { ControllerProps, FieldPath, FieldValues } from "react-hook-form";
 import { cn } from "../../lib/utils.ts";
+import { FormFieldContext, FormItemContext } from "./formContexts.ts";
+import { useFormField } from "./useFormField.ts";
 import { Label } from "./label.tsx";
 
 export const Form = FormProvider;
-
-interface FormFieldContextValue {
-  name: string;
-}
-
-const FormFieldContext = createContext<FormFieldContextValue | null>(null);
 
 export function FormField<
   TFieldValues extends FieldValues = FieldValues,
@@ -36,35 +18,6 @@ export function FormField<
       <Controller {...props} />
     </FormFieldContext>
   );
-}
-
-interface FormItemContextValue {
-  id: string;
-}
-
-const FormItemContext = createContext<FormItemContextValue | null>(null);
-
-export function useFormField() {
-  const fieldContext = use(FormFieldContext);
-  const itemContext = use(FormItemContext);
-  const { getFieldState, formState } = useFormContext();
-
-  const name = fieldContext?.name ?? "";
-  const id = itemContext?.id ?? name;
-
-  const fieldState = getFieldState(name, formState);
-
-  return {
-    id,
-    name,
-    formItemId: `${id}-form-item`,
-    formDescriptionId: `${id}-form-item-description`,
-    formMessageId: `${id}-form-item-message`,
-    error: fieldState.error,
-    isDirty: fieldState.isDirty,
-    isTouched: fieldState.isTouched,
-    invalid: fieldState.invalid,
-  };
 }
 
 export function FormItem({

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button.tsx";
@@ -61,8 +61,11 @@ export function CheckoutPage() {
   const lines = getCartLines(cart.items, products);
   const subtotal = getCartTotal(cart.items, products);
 
-  const currentShipping = form.watch("shippingMethod");
-  const shippingCost = currentShipping === "express" ? 15 : 0;
+  const shippingMethod = useWatch({
+    control: form.control,
+    name: "shippingMethod",
+  });
+  const shippingCost = shippingMethod === "express" ? 15 : 0;
   const grandTotal = subtotal + shippingCost;
 
   function onSubmit(values: CheckoutFormValues): void {

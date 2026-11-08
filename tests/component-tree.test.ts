@@ -3,9 +3,13 @@
 // named in the tree must have a file.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 
-const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
+// Windows checkouts can have \r\n line endings: make them \n first
+const readme = readFileSync(
+  new URL("../README.md", import.meta.url),
+  "utf8",
+).replaceAll("\r\n", "\n");
 const start = readme.indexOf("## Component tree");
 const end = readme.indexOf("### Who owns each piece of state");
 const section = readme.slice(start, end);
@@ -23,9 +27,12 @@ const fromFolder = (folder: string): string[] =>
     .map((file) => file.replace(/\.tsx$/, ""));
 const componentFiles = [
   "App",
-  ...readdirSync(new URL("features/", src)).flatMap((feature) =>
-    fromFolder(`features/${feature}/components/`),
-  ),
+  // A feature may have no components/ folder (checkout has only its schema)
+  ...readdirSync(new URL("features/", src))
+    .filter((feature) =>
+      existsSync(new URL(`features/${feature}/components/`, src)),
+    )
+    .flatMap((feature) => fromFolder(`features/${feature}/components/`)),
   ...fromFolder("shared/components/"),
   ...fromFolder("pages/"),
 ];
