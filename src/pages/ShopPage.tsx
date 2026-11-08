@@ -1,13 +1,16 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Hero } from "../features/products/components/Hero.tsx";
 import { ProductGrid } from "../features/products/components/ProductGrid.tsx";
 import { ShopFilters } from "../features/products/components/ShopFilters.tsx";
 import { StatusMessage } from "../shared/components/StatusMessage.tsx";
-import type { StatusMessageProps } from "../shared/components/StatusMessage.tsx";
+import { DataBoundary } from "../shared/components/DataBoundary.tsx";
 import { Toast } from "../shared/components/Toast.tsx";
 import { useCart } from "../features/cart/hooks/useCart.ts";
 import { useFilters } from "../features/products/hooks/useFilters.ts";
-import { useProducts } from "../features/products/hooks/useProducts.ts";
+import {
+  invalidateProductList,
+  useProductList,
+} from "../features/products/products.resource.ts";
 import { useToast } from "../shared/hooks/useToast.ts";
 import { HERO_TILES } from "../features/products/hero.ts";
 import type { HeroTile } from "../features/products/hero.ts";
@@ -20,21 +23,34 @@ import {
 } from "../features/products/products.logic.ts";
 import type { Product } from "../features/products/products.types.ts";
 
-// One empty list for "no products yet", so it is the same list on every render
-const NO_PRODUCTS: readonly Product[] = [];
-
-// The shop (index.html): the hero, then search, category filter, sort and the product cards.
-// index.html?q=tote&category=Bags&sort=price-asc opens with those filters.
+// The shop (/). The loading line and any load error live in DataBoundary;
+// ShopContent only runs once the products are here.
 export function ShopPage() {
-  const { actions } = useCart();
-  const { state, retry } = useProducts((products) =>
-    actions.keepOnly(products.map((product) => product.id)),
+  return (
+    <DataBoundary
+      statusId="product-status"
+      loadingMessage="Loading products…"
+      onRetry={invalidateProductList}
+    >
+      <ShopContent />
+    </DataBoundary>
   );
+}
+
+// The hero, then search, category filter, sort and the product cards.
+// /shop?q=tote&category=Bags&sort=price-asc opens with those filters.
+function ShopContent() {
+  const products = useProductList();
+  const { actions } = useCart();
   const [filters, setFilters] = useFilters();
   const { toast, showToast, dismissToast } = useToast();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const products = state.status === "ready" ? state.products : NO_PRODUCTS;
+  // Once the products are known, drop cart items whose product no longer exists
+  useEffect(() => {
+    actions.keepOnly(products.map((product) => product.id));
+  }, [products, actions]);
+
   // Filter first, then sort a copy (sortProducts never changes its input)
   const shown = useMemo(
     () =>
@@ -49,7 +65,7 @@ export function ShopPage() {
     const cart = actions.add(product.id);
     showToast(getAddedMessage(product.name, getItemQty(cart, product.id)), {
       label: "View cart",
-      href: "cart.html",
+      href: "/cart",
     });
   }
 
@@ -67,34 +83,7 @@ export function ShopPage() {
     searchRef.current?.focus();
   }
 
-  function getStatus(): StatusMessageProps {
-    switch (state.status) {
-      case "loading":
-        return {
-          id: "product-status",
-          tone: "normal",
-          message: "Loading products…",
-        };
-      case "error":
-        return {
-          id: "product-status",
-          tone: "error",
-          message: state.message,
-          action: { label: "Try again", onClick: retry },
-        };
-      case "ready": {
-        const results = getResultsStatus(shown.length, products.length);
-        return {
-          id: "product-status",
-          tone: results.tone,
-          message: results.message,
-          action: results.offerClear
-            ? { label: "Clear filters", onClick: handleClearFilters }
-            : undefined,
-        };
-      }
-    }
-  }
+  const results = getResultsStatus(shown.length, products.length);
 
   return (
     <>
@@ -119,10 +108,19 @@ export function ShopPage() {
         <ShopFilters
           filters={filters}
           onChange={setFilters}
-          disabled={state.status === "error"}
+          disabled={false}
           searchRef={searchRef}
         />
-        <StatusMessage {...getStatus()} />
+        <StatusMessage
+          id="product-status"
+          tone={results.tone}
+          message={results.message}
+          action={
+            results.offerClear
+              ? { label: "Clear filters", onClick: handleClearFilters }
+              : undefined
+          }
+        />
         <ProductGrid products={shown} onAdd={handleAdd} />
       </section>
 

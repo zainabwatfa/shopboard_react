@@ -1,14 +1,18 @@
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { CartItemRow } from "../features/cart/components/CartItemRow.tsx";
 import { CartSummary } from "../features/cart/components/CartSummary.tsx";
-import { StatusMessage } from "../shared/components/StatusMessage.tsx";
-import type { StatusMessageProps } from "../shared/components/StatusMessage.tsx";
+import { DataBoundary } from "../shared/components/DataBoundary.tsx";
 import { useAnnouncer } from "../shared/hooks/useAnnouncer.ts";
 import { useCart } from "../features/cart/hooks/useCart.ts";
-import { useProducts } from "../features/products/hooks/useProducts.ts";
+import { useProductList } from "../features/products/products.resource.ts";
+import { invalidateProductList } from "../features/products/products.resource.ts";
 import { useStorageSync } from "../shared/hooks/useStorageSync.ts";
-import { describeCartChange, withSavedItems } from "../lib/messages.ts";
+import {
+  describeCartChange,
+  getLoadErrorMessage,
+  withSavedItems,
+} from "../lib/messages.ts";
 import {
   getCartCount,
   getCartLines,
@@ -18,20 +22,38 @@ import {
 import type { CartChange, CartItem } from "../features/cart/cart.types.ts";
 import type { Product } from "../features/products/products.types.ts";
 
-// One empty list for "no products yet", so it is the same list on every render
-const NO_PRODUCTS: readonly Product[] = [];
-
-// The cart: the rows (+ / − / Remove), the summary, and Clear cart. Prices
-// always come from the product data; the saved cart only has { id, qty }.
+// The cart (/cart). Prices need the product data, so the rows load through
+// DataBoundary; a load error keeps the "your saved items are kept" wording.
 export function CartPage() {
-  const { state: cart, actions } = useCart();
-  const { state, retry } = useProducts((products) =>
-    actions.keepOnly(products.map((product) => product.id)),
+  const { state: cart } = useCart();
+
+  return (
+    <DataBoundary
+      statusId="cart-status"
+      loadingMessage="Loading your cart…"
+      onRetry={invalidateProductList}
+      formatError={(error) =>
+        withSavedItems(getLoadErrorMessage(error), cart.count)
+      }
+    >
+      <CartContent />
+    </DataBoundary>
   );
+}
+
+// The rows (+ / − / Remove), the summary, and Clear cart. Prices always come
+// from the product data; the saved cart only has { id, qty }.
+function CartContent() {
+  const products = useProductList();
+  const { state: cart, actions } = useCart();
   const { announcement, announce } = useAnnouncer();
   const headingRef = useRef<HTMLHeadingElement>(null);
 
-  const products = state.status === "ready" ? state.products : NO_PRODUCTS;
+  // Once the products are known, drop cart items whose product no longer exists
+  useEffect(() => {
+    actions.keepOnly(products.map((product) => product.id));
+  }, [products, actions]);
+
   const lines = getCartLines(cart.items, products);
   const total = getCartTotal(cart.items, products);
 
@@ -89,26 +111,6 @@ export function CartPage() {
     headingRef.current?.focus();
   }
 
-  function getStatus(): StatusMessageProps {
-    switch (state.status) {
-      case "loading":
-        return {
-          id: "cart-status",
-          tone: "normal",
-          message: "Loading your cart…",
-        };
-      case "error":
-        return {
-          id: "cart-status",
-          tone: "error",
-          message: withSavedItems(state.message, cart.count),
-          action: { label: "Try again", onClick: retry },
-        };
-      case "ready":
-        return { id: "cart-status", tone: "normal", message: "" };
-    }
-  }
-
   return (
     <>
       <div className="page-head">
@@ -121,42 +123,29 @@ export function CartPage() {
       <p id="cart-announcer" className="visually-hidden" role="status">
         {announcement}
       </p>
-      <StatusMessage {...getStatus()} />
 
-      {state.status === "ready" && lines.length === 0 ? (
+      {lines.length === 0 ? (
         <div id="cart-empty" className="cart-empty-state">
           <p>Your cart is empty.</p>
           <Link className="button" to="/">
             Browse the shop
           </Link>
         </div>
-      ) : null}
-
-      <div className="cart-layout">
-        {lines.length > 0 ? (
-          <>
-            <ul
-              id="cart-list"
-              className="cart-list"
-              aria-labelledby="cart-title"
-            >
-              {lines.map((line) => (
-                <CartItemRow
-                  key={line.product.id}
-                  line={line}
-                  onChangeQty={handleChangeQty}
-                  onRemove={handleRemove}
-                />
-              ))}
-            </ul>
-            <CartSummary
-              count={cart.count}
-              total={total}
-              onClear={handleClear}
-            />
-          </>
-        ) : null}
-      </div>
+      ) : (
+        <div className="cart-layout">
+          <ul id="cart-list" className="cart-list" aria-labelledby="cart-title">
+            {lines.map((line) => (
+              <CartItemRow
+                key={line.product.id}
+                line={line}
+                onChangeQty={handleChangeQty}
+                onRemove={handleRemove}
+              />
+            ))}
+          </ul>
+          <CartSummary count={cart.count} total={total} onClear={handleClear} />
+        </div>
+      )}
     </>
   );
 }

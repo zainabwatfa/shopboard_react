@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link } from "react-router-dom";
@@ -21,12 +21,12 @@ import {
 } from "../features/checkout/checkout.schema.ts";
 import type { CheckoutFormValues } from "../features/checkout/checkout.schema.ts";
 import { ProductImage } from "../features/products/components/ProductImage.tsx";
-import { useProducts } from "../features/products/hooks/useProducts.ts";
-import type { Product } from "../features/products/products.types.ts";
+import {
+  invalidateProductList,
+  useProductList,
+} from "../features/products/products.resource.ts";
 import { formatMoney } from "../lib/format.ts";
-import { StatusMessage } from "../shared/components/StatusMessage.tsx";
-
-const NO_PRODUCTS: readonly Product[] = [];
+import { DataBoundary } from "../shared/components/DataBoundary.tsx";
 
 interface ConfirmedOrder {
   id: string;
@@ -38,12 +38,43 @@ interface ConfirmedOrder {
   city: string;
 }
 
-// Checkout page built with react-hook-form, Zod schema validation, and shadcn/ui components
+// Checkout page built with react-hook-form, Zod schema validation, and
+// shadcn/ui components. The order summary needs the product prices, so it
+// loads through DataBoundary (loading line and load error with Try again).
 export function CheckoutPage() {
-  const { state: cart, actions } = useCart();
-  const { state: productsState, retry } = useProducts((products) =>
-    actions.keepOnly(products.map((p) => p.id)),
+  return (
+    <>
+      <div className="page-head">
+        <p className="eyebrow">Checkout</p>
+        <h1>
+          Complete your <em>order</em>
+        </h1>
+      </div>
+
+      <p className="demo-note">
+        <strong>Demo notice:</strong> ShopBoard is a course demonstration. No
+        real payments, charges, or physical shipments occur.
+      </p>
+
+      <DataBoundary
+        statusId="checkout-status"
+        loadingMessage="Loading order details…"
+        onRetry={invalidateProductList}
+      >
+        <CheckoutContent />
+      </DataBoundary>
+    </>
   );
+}
+
+function CheckoutContent() {
+  const products = useProductList();
+  const { state: cart, actions } = useCart();
+
+  // Once the products are known, drop cart items whose product no longer exists
+  useEffect(() => {
+    actions.keepOnly(products.map((product) => product.id));
+  }, [products, actions]);
 
   const [orderCounter, setOrderCounter] = useState(10482);
   const [confirmedOrder, setConfirmedOrder] = useState<ConfirmedOrder | null>(
@@ -56,8 +87,6 @@ export function CheckoutPage() {
     mode: "onTouched",
   });
 
-  const products =
-    productsState.status === "ready" ? productsState.products : NO_PRODUCTS;
   const lines = getCartLines(cart.items, products);
   const subtotal = getCartTotal(cart.items, products);
 
@@ -92,35 +121,6 @@ export function CheckoutPage() {
 
   return (
     <>
-      <div className="page-head">
-        <p className="eyebrow">Checkout</p>
-        <h1>
-          Complete your <em>order</em>
-        </h1>
-      </div>
-
-      <p className="demo-note">
-        <strong>Demo notice:</strong> ShopBoard is a course demonstration. No
-        real payments, charges, or physical shipments occur.
-      </p>
-
-      {productsState.status === "loading" && (
-        <StatusMessage
-          id="checkout-status"
-          tone="normal"
-          message="Loading order details…"
-        />
-      )}
-
-      {productsState.status === "error" && (
-        <StatusMessage
-          id="checkout-status"
-          tone="error"
-          message={productsState.message}
-          action={{ label: "Try again", onClick: retry }}
-        />
-      )}
-
       {confirmedOrder ? (
         <section
           className="checkout-done"
@@ -165,14 +165,14 @@ export function CheckoutPage() {
             </Link>
           </div>
         </section>
-      ) : lines.length === 0 && productsState.status === "ready" ? (
+      ) : lines.length === 0 ? (
         <div className="cart-empty-state">
           <p>Your cart is empty. Add products before checking out.</p>
           <Link to="/" className="button">
             Browse products
           </Link>
         </div>
-      ) : lines.length > 0 ? (
+      ) : (
         <div className="checkout-layout">
           <Form {...form}>
             <form
@@ -406,7 +406,7 @@ export function CheckoutPage() {
             </div>
           </aside>
         </div>
-      ) : null}
+      )}
     </>
   );
 }
