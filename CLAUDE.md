@@ -1,16 +1,27 @@
 # ShopBoard (React)
 
 The React + TypeScript version of ShopBoard, a demo shop built for a course (task 2: "ShopBoard UI in React").
-Nothing is sold: no real orders, no payments, no checkout. The first version (plain TypeScript) is [zainabwatfa/shopboard](https://github.com/zainabwatfa/shopboard).
+Nothing is really sold: no real orders and no real payments. There is a simulated checkout for the demo (it validates a form, clears the cart and shows a confirmation; no money moves). The first version (plain TypeScript) is [zainabwatfa/shopboard](https://github.com/zainabwatfa/shopboard).
 
-Two pages, both drawn by React from `src/main.tsx`:
+## Routing and pages
 
-| File         | `<body data-page>` | What it shows                                                                   |
-| ------------ | ------------------ | ------------------------------------------------------------------------------- |
-| `index.html` | `shop`             | Search, category filter, sort (kept in the URL), product cards, toast after add |
-| `cart.html`  | `cart`             | Cart rows (+ / − / Remove), summary with a demo note, Clear cart                |
+`App` runs a React Router `BrowserRouter` with lazy-loaded route pages, all inside the shared `Layout` (header, nav, theme switch, footer):
 
-Both HTML files have the same `<head>`: meta tags, Google Fonts, `src/styles.css` and a small inline script that applies the saved theme (`shopboard-theme`, the key `theme.state.ts` uses) before the first paint. A new page must also be added to `build.rollupOptions.input` in `vite.config.ts`.
+| Route                           | Page           | What it shows                                                               |
+| ------------------------------- | -------------- | --------------------------------------------------------------------------- |
+| `/`, `/shop`                    | `ShopPage`     | Hero, search, category filter, sort (kept in the URL), product cards, toast |
+| `/products/:id`, `/product/:id` | `ProductPage`  | One product and related items; an unknown id shows "Product not found"      |
+| `/cart`                         | `CartPage`     | Cart rows (+ / − / Remove), summary with a demo note, Clear cart            |
+| `/checkout`                     | `CheckoutPage` | Simulated checkout (react-hook-form + Zod), order summary, confirmation     |
+| `/about`                        | `AboutPage`    | About the demo                                                              |
+| `/faq`                          | `FaqPage`      | Frequently asked questions                                                  |
+| anything else                   | `NotFoundPage` | 404                                                                         |
+
+A new page is a new `lazy(...)` import and `<Route>` in `App.tsx`, not a new HTML file. `index.html` and `cart.html` stay as the two build entry points (both listed in `build.rollupOptions.input` in `vite.config.ts`); each boots the same `<App>`, which then routes on the URL, and `/index.html` and `/cart.html` redirect to `/` and `/cart`. Both HTML files share the same `<head>`: meta tags, Google Fonts, `src/styles.css` and a small inline script that applies the saved theme (`shopboard-theme`, the key `theme.state.ts` uses) before the first paint.
+
+## Loading and errors (Suspense + Error Boundaries)
+
+Route pages are lazy, so `App` wraps them in `Suspense` with a "Loading page…" fallback. A page that reads data (the products) does it with `use()` through `src/features/products/products.resource.ts`, wrapped in `DataBoundary` (`src/shared/components/`): `Suspense` shows the loading line, and an `ErrorBoundary` shows the error card with **Try again**, which drops the cached promise (`suspenseCache.ts`) so the next render refetches without a reload. `DataBoundary` sits inside each page, below `Layout`, so a slow or failed load only replaces that page's content — the header, nav and footer stay on screen. Empty and no-match states are plain values, not errors: the shop shows "No products are available right now." or "No products match your search." (with **Clear filters**), the cart and checkout show an empty-cart message, and a missing product shows "Product not found".
 
 ## Scripts
 
@@ -52,18 +63,25 @@ From mistakes made while building this repo:
 
 ```
 src/
-├── features/         one folder per feature: cart, products, theme
+├── features/         one folder per feature: cart, products, theme, checkout
 │   └── <feature>/    its Day 3 files (*.types / *.api / *.logic / *.state, copied unchanged),
-│                     components/ and hooks/ that belong to it (products/ also has hero.ts)
+│                     components/ and hooks/ that belong to it. products/ also has hero.ts
+│                     and products.resource.ts (reads products with use() for Suspense);
+│                     checkout/ is only checkout.schema.ts (the Zod form schema)
 ├── shared/           what several features use
-│   ├── api/          client.ts: fetchJson, ApiError, resolveApiUrl (the only file that calls fetch)
-│   ├── components/   Layout, Header, MainNav, NavLink, Footer, StatusMessage, Toast, SearchField, SelectField
+│   ├── api/          client.ts: fetchJson, ApiError, resolveApiUrl (the only file that calls fetch);
+│   │                 suspenseCache.ts: one promise per key for use(), dropped on "Try again"
+│   ├── components/   Layout, Header, MainNav, NavLink, Footer, StatusMessage, Toast,
+│   │                 SearchField, SelectField, DataBoundary, ErrorBoundary
 │   └── hooks/        useToast, useAnnouncer, useStorageSync
-├── pages/            ShopPage.tsx, CartPage.tsx: decide what happens; components draw it
-├── lib/              small helpers: messages.ts (every sentence the pages show, pure and tested), format.ts, page.ts, siteLinks.ts
+├── components/ui/    shadcn/ui primitives used by the checkout form (button, input, form, label)
+├── pages/            ShopPage, ProductPage, CartPage, CheckoutPage, AboutPage, FaqPage,
+│                     NotFoundPage: decide what happens; components draw it
+├── lib/              small helpers: messages.ts (every sentence the pages show, pure and tested),
+│                     format.ts, page.ts, siteLinks.ts, utils.ts
 ├── vite-env.d.ts     types for the VITE_ environment variables
 ├── main.tsx          reads <body data-page> and renders <App page> inside StrictMode
-├── App.tsx           the top of the component tree: CartProvider > Layout > the page
+├── App.tsx           the top of the tree: CartProvider > BrowserRouter > Suspense > Routes > Layout > the active page
 └── styles.css        copied from the first repo, so the look is the same
 tests/                node:test files: the copied Day 3 tests, the API client, messages, page and the README component tree
 debug-lab-log.md      the 5 Debug Lab bugs: what I saw, the component, how I found it, the cause, the fix
