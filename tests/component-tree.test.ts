@@ -53,16 +53,30 @@ test("every component file appears in the README tree", () => {
   assert.deepEqual(missing, []);
 });
 
-test("every component in the README tree has a file (the context aside)", () => {
+// Nodes the tree draws that have no file of their own and are not drift:
+// React and react-router built-ins, the two inline components (PageFallback
+// in App.tsx and CartContent in CartPage.tsx) and the cart context.
+const treeOnlyNodes = new Set([
+  "CartContext",
+  "StrictMode",
+  "BrowserRouter",
+  "Suspense",
+  "Routes",
+  "PageFallback",
+  "CartContent",
+]);
+
+test("every component in the README tree has a file (framework and inline nodes aside)", () => {
   const extra = [...treeNames].filter(
-    (name) => name !== "CartContext" && !componentFiles.includes(name),
+    (name) => !treeOnlyNodes.has(name) && !componentFiles.includes(name),
   );
   assert.deepEqual(extra, []);
 });
 
-test("App is at the top of both trees", () => {
+test("the trees are rooted at the entry point and Layout", () => {
   const firstNodes = [...section.matchAll(/```\n(\w+)/g)].map(
     (match) => match[1],
   );
-  assert.deepEqual(firstNodes, ["App", "App"]);
+  assert.deepEqual(firstNodes, ["main", "Layout", "Layout"]);
+  assert.ok(treeNames.has("App"));
 });

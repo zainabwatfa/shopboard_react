@@ -65,7 +65,7 @@ The trees below describe the main React components and the props they receive. `
 
 ### Shared application wrapper
 
-```text
+```
 main.tsx
 └── StrictMode
     └── App { page? }
@@ -81,7 +81,7 @@ main.tsx
                                 │   ├── MainNav
                                 │   │   └── NavLink
                                 │   └── ThemeSwitch
-                                ├── Active route page
+                                ├── (active route page)
                                 └── Footer { groups }
 ```
 
@@ -89,7 +89,7 @@ main.tsx
 
 ### Primary routes (Shop, Product, Cart)
 
-```text
+```
 Layout { current?, mainClassName?, children? }
 [state: theme choice (useTheme)]
 ├── Header { children }
@@ -150,7 +150,7 @@ When the cart is empty, `CartPage` shows the empty message instead of the rows a
 
 ### Secondary routes (Checkout, About, FAQ, 404)
 
-```text
+```
 Layout
 ├── Header
 │   ├── MainNav { current, cartCount? }
